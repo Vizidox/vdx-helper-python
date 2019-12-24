@@ -1,41 +1,45 @@
 import time
-from http import HTTPStatus
-from typing import Optional, Tuple, Callable, Any, Dict, List, TypeVar
+import os
 import io
-from uuid import UUID
-
 import requests
-
-VDX_CORE_API_KEY = ""
-VDX_CORE_API_CLIENT_ID = ""
-
+from http import HTTPStatus
+from typing import Optional, Tuple, Callable, Any, Dict, List, TypeVar, NamedTuple
+from uuid import UUID
 from werkzeug.datastructures import FileStorage
 from flask import request
 
 T = TypeVar('T')
 Json = Dict[str, Any]
 
-
-def compute_core_file_id(file_hash: str) -> str:
-    return f"{VDX_CORE_API_CLIENT_ID}_{file_hash}"
-
 def get_json_mapper() -> Callable[[Json], Json]:
     def mapper(json_: Json) -> Json:
         return json_
     return mapper
 
+class FileSummary(NamedTuple):
+    id: str
+    file_hash: str
+    filename: str
+    public: bool
+    encrypted: bool
+    encrypted_hash: Optional[str]
+    picture_file: bool
 
 class VDXError(Exception):
     pass
 
 
 class VDXHelper:
-
-    def __init__(self, url: str, keycloak_url: str) -> None:
+    def __init__(self, url: str, keycloak_url: str, core_api_key: str, core_api_client_id: str) -> None:
         self.url = url
         self.keycloak_url = keycloak_url
         self.auth_token: Optional[str] = None
         self.token_expiration_date: float = 0
+        self.core_api_key: str = core_api_key
+        self.core_api_client_id: str = core_api_client_id
+
+    def _compute_core_file_id(self, file_hash: str) -> str:
+        return f"{self.core_api_client_id}_{file_hash}"
 
     def _get_token_string(self) -> str:
 
@@ -55,8 +59,8 @@ class VDXHelper:
         }
 
         payload = {
-            "client_id": VDX_CORE_API_CLIENT_ID,
-            "client_secret": VDX_CORE_API_KEY,
+            "client_id": self.core_api_client_id,
+            "client_secret": self.core_api_key,
             "grant_type": "client_credentials"
         }
 
@@ -131,18 +135,18 @@ class VDXHelper:
         file_summary = None
 
         if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            file_summary = mapper()
+            file_summary = mapper(response.json())
 
         return status, file_summary
 
-    def update_file_attributes(self, encrypted_hash: FileSummary, filename: str) -> HTTPStatus:
+    def update_file_attributes(self, file_summary: FileSummary, filename: str) -> HTTPStatus:
 
         payload = {
             "filename": filename
         }
 
-        core_id = compute_core_file_id(file_summary.encrypted_hash) if file_summary.encrypted_hash \
-            else compute_core_file_id(file_summary.file_hash)
+        core_id = self._compute_core_file_id(file_summary.encrypted_hash) if file_summary.encrypted_hash \
+            else self._compute_core_file_id(file_summary.file_hash)
 
         response = requests.put(
             f"{self.url}/files/{core_id}/attributes",
@@ -203,8 +207,8 @@ class VDXHelper:
 
     def create_credential(self, title: str, metadata: dict, file_summary: FileSummary, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
-        core_id = compute_core_file_id(file_summary.encrypted_hash) if file_summary.encrypted_hash \
-            else compute_core_file_id(file_summary.file_hash)
+        core_id = self._compute_core_file_id(file_summary.encrypted_hash) if file_summary.encrypted_hash \
+            else self._compute_core_file_id(file_summary.file_hash)
 
         payload: Json = {
             "title": title,
