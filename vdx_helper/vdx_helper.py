@@ -401,13 +401,12 @@ class VDXHelper:
     @staticmethod
     def _get_pagination_params():
         params = {
-            'count': 0,
-            'page': 1
+            'per_page': 0
         }
         if request.args.get('filterby'):
             params['filterby'] = request.args.get('filterby')
         if request.args.get('sortby'):
-            params['sortby'] = request.args.get('sortby')
+            params['sort_by'] = request.args.get('sortby')
         if request.args.get('order'):
             params['order'] = request.args.get('order')
 
