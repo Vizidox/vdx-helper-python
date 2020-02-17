@@ -490,16 +490,3 @@ class VDXHelper:
 
         return status, certificate
 
-    @staticmethod
-    def _get_pagination_params():
-        params = {
-            'per_page': 0
-        }
-        if request.args.get('filterby'):
-            params['filterby'] = request.args.get('filterby')
-        if request.args.get('sortby'):
-            params['sort_by'] = request.args.get('sortby')
-        if request.args.get('order'):
-            params['order'] = request.args.get('order')
-
-        return params
