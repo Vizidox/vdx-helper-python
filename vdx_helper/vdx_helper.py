@@ -113,12 +113,14 @@ class VDXHelper:
         return status, permissions
 
     ################## FILES #####################
-    def upload_file(self, file: FileStorage, mapper: Callable[[], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def upload_file(self, file: FileStorage, ignore_duplicated: bool = False,
+                    mapper: Callable[[], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         file.stream.seek(0)
 
         payload = {
-            "file": (file.filename, file.stream, file.content_type)
+            "file": (file.filename, file.stream, file.content_type),
+            "ignore_duplicated": ignore_duplicated
         }
 
         response = requests.post(
