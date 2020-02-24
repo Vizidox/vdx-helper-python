@@ -120,13 +120,16 @@ class VDXHelper:
 
         payload = {
             "file": (file.filename, file.stream, file.content_type),
+        }
+        form_data = {
             "ignore_duplicated": ignore_duplicated
         }
 
         response = requests.post(
             f"{self.url}/files",
             headers=self._get_request_header(),
-            files=payload
+            files=payload,
+            data=form_data
         )
 
         status = HTTPStatus(response.status_code)
