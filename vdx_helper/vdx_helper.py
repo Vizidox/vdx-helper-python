@@ -420,7 +420,8 @@ class VDXHelper:
     def get_certificates(self, pagination: dict, mapper: Callable[[Json], T] = get_json_mapper(), *, # type: ignore # https://github.com/python/mypy/issues/3737
                          uid: Optional[UUID] = None, job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None,
                          start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
-                         credential_tags: Optional[str] = None, job_tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
+                         credential_tags: Optional[str] = None, job_tags: Optional[str] = None,
+                         verification_status: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
 
         params: dict = {
             'uid': uid,
@@ -429,7 +430,8 @@ class VDXHelper:
             'start_issued_date': start_date,
             'end_issued_date': end_date,
             "credential_tags": credential_tags,
-            "job_tags": job_tags
+            "job_tags": job_tags,
+            "verification_status": verification_status
         }
 
         params = {**params, **pagination}
