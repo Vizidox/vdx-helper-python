@@ -243,7 +243,7 @@ class VDXHelper:
 
         return status, credential
 
-    def create_credential(self, title: str, metadata: dict, tags: List[str], core_id: str,
+    def create_credential(self, title: str, metadata: dict, tags: List[str], core_id: str, expiry_date: Optional[datetime],
                           mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload: Json = {
@@ -252,6 +252,11 @@ class VDXHelper:
             "file_id": core_id,
             "tags": tags
         }
+
+        if expiry_date is not None:
+            payload['expiry_date'] = expiry_date
+
+
         response = requests.post(
             f"{self.url}/credentials",
             headers=self._get_request_header(),
@@ -281,14 +286,13 @@ class VDXHelper:
         return status
 
     ################## JOBS #####################
-    def issue_job(self, engine: str, credentials: List[UUID], tags: List[str], expiry_date: Optional[str],
+    def issue_job(self, engine: str, credentials: List[UUID], tags: List[str],
                   mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload: Json = {
             "engine": engine,
             "credentials": credentials,
             "tags": tags,
-            "expiry_date": expiry_date
         }
 
         response = requests.post(
