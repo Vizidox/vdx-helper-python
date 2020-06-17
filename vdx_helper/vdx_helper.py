@@ -1,16 +1,14 @@
 import time
-import os
-import io
-import requests
+from datetime import datetime
 from http import HTTPStatus
-from typing import Optional, Tuple, Callable, Any, Dict, List, TypeVar, NamedTuple
+from typing import Optional, Tuple, Callable, Any, Dict, List, TypeVar, Set
+import io
 from uuid import UUID
 
 import requests
-
 from portal.settings import VDX_CORE_API_KEY, VDX_CORE_API_CLIENT_ID
 from werkzeug.datastructures import FileStorage
-
+from portal.util.dates import datetime_to_string
 from flask import request
 
 T = TypeVar('T')
@@ -22,30 +20,18 @@ def get_json_mapper() -> Callable[[Json], Json]:
         return json_
     return mapper
 
-class FileSummary(NamedTuple):
-    id: str
-    file_hash: str
-    filename: str
-    public: bool
-    encrypted: bool
-    encrypted_hash: Optional[str]
-    picture_file: bool
 
 class VDXError(Exception):
     pass
 
 
 class VDXHelper:
-    def __init__(self, url: str, keycloak_url: str, core_api_key: str, core_api_client_id: str) -> None:
+
+    def __init__(self, url: str, keycloak_url: str) -> None:
         self.url = url
         self.keycloak_url = keycloak_url
         self.auth_token: Optional[str] = None
         self.token_expiration_date: float = 0
-        self.core_api_key: str = core_api_key
-        self.core_api_client_id: str = core_api_client_id
-
-    def _compute_core_file_id(self, file_hash: str) -> str:
-        return f"{self.core_api_client_id}_{file_hash}"
 
     def _get_token_string(self) -> str:
 
@@ -65,8 +51,8 @@ class VDXHelper:
         }
 
         payload = {
-            "client_id": self.core_api_client_id,
-            "client_secret": self.core_api_key,
+            "client_id": VDX_CORE_API_CLIENT_ID,
+            "client_secret": VDX_CORE_API_KEY,
             "grant_type": "client_credentials"
         }
 
@@ -123,16 +109,16 @@ class VDXHelper:
         return status, permissions
 
     ################## FILES #####################
-    def upload_file(self, file: FileStorage, ignore_duplicated: bool = False,
-                    mapper: Callable[[], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def upload_file(self, file: FileStorage, ignore_duplicate: bool = False,
+                    mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         file.stream.seek(0)
 
         payload = {
-            "file": (file.filename, file.stream, file.content_type),
+            "file": (file.filename, file.stream, file.content_type)
         }
         form_data = {
-            "ignore_duplicated": ignore_duplicated
+            "ignore_duplicated": ignore_duplicate
         }
 
         response = requests.post(
@@ -179,25 +165,6 @@ class VDXHelper:
 
         return status, files
 
-    def download_printable_file(self, core_id: str, qr_url: str) -> Tuple[HTTPStatus, Optional[io.BytesIO]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-
-        params = {'qr_url': qr_url}
-
-        response = requests.get(
-            f"{self.url}/files/{core_id}/printable",
-            headers=self._get_request_header(),
-            params=params
-        )
-
-        status = HTTPStatus(response.status_code)
-
-        printable_file = None
-
-        if status is HTTPStatus.OK:
-            printable_file = io.BytesIO(response.content)
-
-        return status, printable_file
-
     ################## CREDENTIALS #####################
     def download_credential_file(self, doc_uid: UUID) -> Tuple[HTTPStatus, Optional[io.BytesIO]]:
 
@@ -220,8 +187,8 @@ class VDXHelper:
 
         params: dict = {
             'uid': uid,
-            'start_upload_date': start_date,
-            'end_upload_date': end_date,
+            'upload_date_from': start_date,
+            'upload_date_until': end_date,
             "tags": tags
         }
 
@@ -256,19 +223,15 @@ class VDXHelper:
 
         return status, credential
 
-    def create_credential(self, title: str, metadata: dict, tags: List[str], core_id: str, expiry_date: Optional[datetime],
+    def create_credential(self, title: str, metadata: dict, tags: Set[str], core_id: str, expiry_date: Optional[str],
                           mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-
         payload: Json = {
             "title": title,
             "metadata": metadata,
             "file_id": core_id,
-            "tags": tags
+            "tags": list(tags),
+            "expiry_date": expiry_date
         }
-
-        if expiry_date is not None:
-            payload['expiry_date'] = expiry_date
-
 
         response = requests.post(
             f"{self.url}/credentials",
@@ -299,13 +262,13 @@ class VDXHelper:
         return status
 
     ################## JOBS #####################
-    def issue_job(self, engine: str, credentials: List[UUID], tags: List[str],
+    def issue_job(self, engine: str, credentials: List[UUID], tags: Set[str],
                   mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload: Json = {
             "engine": engine,
             "credentials": credentials,
-            "tags": tags,
+            "tags": list(tags),
         }
 
         response = requests.post(
@@ -330,8 +293,8 @@ class VDXHelper:
         params: dict = {
             'uid': uid,
             'status': job_status,
-            'start_issued_date': start_date,
-            'end_issued_date': end_date,
+            'issued_date_from': start_date,
+            'issued_date_until': end_date,
             "tags": tags
         }
 
@@ -444,8 +407,8 @@ class VDXHelper:
             'uid': uid,
             'job_uid': job_uid,
             'credential_uid': cred_uid,
-            'start_issued_date': start_date,
-            'end_issued_date': end_date,
+            'issued_date_from': start_date,
+            'issued_date_until': end_date,
             "credential_tags": credential_tags,
             "job_tags": job_tags,
             "verification_status": verification_status
@@ -513,4 +476,21 @@ class VDXHelper:
             certificate = io.BytesIO(response.content)
 
         return status, certificate
+
+    @staticmethod
+    def _get_pagination_params():
+        params = {
+            'per_page': 0
+        }
+        if request.args.get('filterby'):
+            params['filterby'] = request.args.get('filterby')
+        if request.args.get('sortby'):
+            params['sort_by'] = request.args.get('sortby')
+        if request.args.get('order'):
+            params['order'] = request.args.get('order')
+
+        return params
+
+
+
 
