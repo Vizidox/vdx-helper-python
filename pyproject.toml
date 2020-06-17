@@ -6,12 +6,12 @@ authors = ["Tiago Santos <tiago.santos@vizidox.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-coverage = "^5.0"
 werkzeug = "^0.16.0"
-flask = "^1.1.1"
+requests="2.24.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
+coverage = "^5.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
