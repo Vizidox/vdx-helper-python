@@ -1,15 +1,12 @@
+import io
 import time
 from datetime import datetime
 from http import HTTPStatus
-from typing import Optional, Tuple, Callable, Any, Dict, List, TypeVar, Set
-import io
+from typing import Optional, NamedTuple, Callable, Any, Dict, TypeVar, Tuple, Set, List
 from uuid import UUID
 
 import requests
-from portal.settings import VDX_CORE_API_KEY, VDX_CORE_API_CLIENT_ID
 from werkzeug.datastructures import FileStorage
-from portal.util.dates import datetime_to_string
-from flask import request
 
 T = TypeVar('T')
 Json = Dict[str, Any]
@@ -20,18 +17,30 @@ def get_json_mapper() -> Callable[[Json], Json]:
         return json_
     return mapper
 
+class FileSummary(NamedTuple):
+    id: str
+    file_hash: str
+    filename: str
+    public: bool
+    encrypted: bool
+    encrypted_hash: Optional[str]
+    picture_file: bool
 
 class VDXError(Exception):
     pass
 
 
 class VDXHelper:
-
-    def __init__(self, url: str, keycloak_url: str) -> None:
+    def __init__(self, url: str, keycloak_url: str, core_api_key: str, core_api_client_id: str) -> None:
         self.url = url
         self.keycloak_url = keycloak_url
         self.auth_token: Optional[str] = None
         self.token_expiration_date: float = 0
+        self.core_api_key: str = core_api_key
+        self.core_api_client_id: str = core_api_client_id
+
+    def _compute_core_file_id(self, file_hash: str) -> str:
+        return f"{self.core_api_client_id}_{file_hash}"
 
     def _get_token_string(self) -> str:
 
@@ -51,8 +60,8 @@ class VDXHelper:
         }
 
         payload = {
-            "client_id": VDX_CORE_API_CLIENT_ID,
-            "client_secret": VDX_CORE_API_KEY,
+            "client_id": self.core_api_client_id,
+            "client_secret": self.core_api_key,
             "grant_type": "client_credentials"
         }
 
@@ -109,16 +118,16 @@ class VDXHelper:
         return status, permissions
 
     ################## FILES #####################
-    def upload_file(self, file: FileStorage, ignore_duplicate: bool = False,
+    def upload_file(self, file: FileStorage, ignore_duplicated: bool = False,
                     mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         file.stream.seek(0)
 
         payload = {
-            "file": (file.filename, file.stream, file.content_type)
+            "file": (file.filename, file.stream, file.content_type),
         }
         form_data = {
-            "ignore_duplicated": ignore_duplicate
+            "ignore_duplicated": ignore_duplicated
         }
 
         response = requests.post(
@@ -232,6 +241,9 @@ class VDXHelper:
             "tags": list(tags),
             "expiry_date": expiry_date
         }
+
+        if expiry_date is not None:
+            payload['expiry_date'] = expiry_date
 
         response = requests.post(
             f"{self.url}/credentials",
@@ -476,21 +488,4 @@ class VDXHelper:
             certificate = io.BytesIO(response.content)
 
         return status, certificate
-
-    @staticmethod
-    def _get_pagination_params():
-        params = {
-            'per_page': 0
-        }
-        if request.args.get('filterby'):
-            params['filterby'] = request.args.get('filterby')
-        if request.args.get('sortby'):
-            params['sort_by'] = request.args.get('sortby')
-        if request.args.get('order'):
-            params['order'] = request.args.get('order')
-
-        return params
-
-
-
 
