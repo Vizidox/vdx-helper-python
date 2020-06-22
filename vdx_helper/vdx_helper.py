@@ -193,11 +193,11 @@ class VDXHelper:
         return status, document_file
 
     def get_credentials(self, pagination: Dicterable = tuple(), mapper: Callable[[Json], T] = get_json_mapper(), *,  # type: ignore # https://github.com/python/mypy/issues/3737
-                        uid: Optional[UUID] = None, metadata: Dicterable = tuple(), start_date: Optional[datetime] = None,
-                        end_date: Optional[datetime] = None, tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
+                        metadata: Dicterable = tuple(),
+                        start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
+                        tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
 
         params = nndict(
-            uid=uid,
             upload_date_from=start_date,
             upload_date_until=end_date,
             tags=tags
