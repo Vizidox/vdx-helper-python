@@ -4,6 +4,34 @@ from typing import NamedTuple, Optional, List, Mapping
 from uuid import UUID
 
 
+class EnginePermissionsView(NamedTuple):
+    """
+    An Engine Permission View to be returned by the API
+    ---
+    type: array
+    items:
+      type: object
+      title: EnginePermissions
+      required:
+      - name
+      - is_allowed
+      - show_prices
+      properties:
+        name:
+          type: string
+          description: 'The blockchain engine name'
+        is_allowed:
+          type: boolean
+          description: 'The partner''s access to issuing on the blockchain'
+        show_prices:
+          type: boolean
+          description: 'The partner''s access to the currency issuing price'
+    """
+    name: str
+    is_allowed: bool
+    show_prices: bool
+
+
 class PaginatedView(NamedTuple):
     """
     A Paginated View to be returned by the API
