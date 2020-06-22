@@ -6,6 +6,7 @@ from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, Set, List, Uni
 from uuid import UUID
 
 import requests
+from nndict import nndict
 from werkzeug.datastructures import FileStorage
 
 T = TypeVar('T')
@@ -195,12 +196,12 @@ class VDXHelper:
                         uid: Optional[UUID] = None, metadata: Dicterable = tuple(), start_date: Optional[datetime] = None,
                         end_date: Optional[datetime] = None, tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
 
-        params: dict = {
-            'uid': uid,
-            'upload_date_from': start_date,
-            'upload_date_until': end_date,
-            "tags": tags
-        }
+        params = nndict(
+            uid=uid,
+            upload_date_from=start_date,
+            upload_date_until=end_date,
+            tags=tags
+        )
 
         params = {**params, **dict(metadata), **dict(pagination)}
 
