@@ -32,7 +32,7 @@ class VDXError(Exception):
 
 class VDXHelper:
     def __init__(self, url: str, keycloak_url: str, core_api_key: str, core_api_client_id: str) -> None:
-        self.url = url
+        self.url = url.rstrip("/")
         self.keycloak_url = keycloak_url
         self.auth_token: Optional[str] = None
         self.token_expiration_date: float = 0
