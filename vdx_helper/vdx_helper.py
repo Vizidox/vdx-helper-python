@@ -85,20 +85,6 @@ class VDXHelper:
         return headers
 
     ################## ENGINES #####################
-    def engine_cost(self, engine_name: str, n: int,  mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-        response = requests.get(
-            f"{self.url}/engines/{engine_name}/cost/{n}",
-            headers=self.header
-        )
-
-        status = HTTPStatus(response.status_code)
-        currency_amount = None
-
-        if status is HTTPStatus.OK:
-            currency_amount = mapper(response.json())
-
-        return status, currency_amount
-
     def get_partner_permissions(self, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
