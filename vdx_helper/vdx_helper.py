@@ -14,25 +14,19 @@ Json = Dict[str, Any]
 
 Dicterable = Union[Dict, Iterable[Tuple[Hashable, Any]]]
 
+
 def get_json_mapper() -> Callable[[Json], Json]:
     def mapper(json_: Json) -> Json:
         return json_
     return mapper
 
-class FileSummary(NamedTuple):
-    id: str
-    file_hash: str
-    filename: str
-    public: bool
-    encrypted: bool
-    encrypted_hash: Optional[str]
-    picture_file: bool
 
 class VDXError(Exception):
     pass
 
 
 class VDXHelper:
+
     def __init__(self, url: str, keycloak_url: str, core_api_key: str, core_api_client_id: str) -> None:
         self.url = url.rstrip("/")
         self.keycloak_url = keycloak_url
@@ -82,7 +76,8 @@ class VDXHelper:
 
         return status, access_token, token_expiration_date
 
-    def _get_request_header(self):
+    @property
+    def header(self):
         headers = {
             "Authorization": "Bearer " + self._get_token_string(),
             "Accept": "application/json"
@@ -93,7 +88,7 @@ class VDXHelper:
     def engine_cost(self, engine_name: str, n: int,  mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
         response = requests.get(
             f"{self.url}/engines/{engine_name}/cost/{n}",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         status = HTTPStatus(response.status_code)
@@ -108,7 +103,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/engines",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         status = HTTPStatus(response.status_code)
@@ -134,7 +129,7 @@ class VDXHelper:
 
         response = requests.post(
             f"{self.url}/files",
-            headers=self._get_request_header(),
+            headers=self.header,
             files=payload,
             data=form_data
         )
@@ -155,7 +150,7 @@ class VDXHelper:
 
         response = requests.put(
             f"{self.url}/files/{core_id}/attributes",
-            headers=self._get_request_header(),
+            headers=self.header,
             json=payload
         )
 
@@ -165,7 +160,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/files",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         status = HTTPStatus(response.status_code)
@@ -181,7 +176,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/credentials/{doc_uid}/file",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         status = HTTPStatus(response.status_code)
@@ -207,7 +202,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/credentials",
-            headers=self._get_request_header(),
+            headers=self.header,
             params=params
         )
 
@@ -223,7 +218,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/credentials/{cred_uid}",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         credential = None
@@ -249,7 +244,7 @@ class VDXHelper:
 
         response = requests.post(
             f"{self.url}/credentials",
-            headers=self._get_request_header(),
+            headers=self.header,
             json=payload
         )
 
@@ -268,7 +263,7 @@ class VDXHelper:
         }
         response = requests.patch(
             f"{self.url}/credentials",
-            headers=self._get_request_header(),
+            headers=self.header,
             json=payload
         )
 
@@ -287,7 +282,7 @@ class VDXHelper:
 
         response = requests.post(
             f"{self.url}/jobs",
-            headers=self._get_request_header(),
+            headers=self.header,
             json=payload
         )
 
@@ -316,7 +311,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/jobs",
-            headers=self._get_request_header(),
+            headers=self.header,
             params=params
         )
 
@@ -332,7 +327,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/jobs/{job_uid}",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         job = None
@@ -350,7 +345,7 @@ class VDXHelper:
         }
         response = requests.patch(
             f"{self.url}/jobs",
-            headers=self._get_request_header(),
+            headers=self.header,
             json=payload
         )
 
@@ -362,7 +357,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/verify/{cert_uid}",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         verification_response = None
@@ -381,7 +376,7 @@ class VDXHelper:
 
         response = requests.post(
             f"{self.url}/verify/upload/certificate",
-            headers=self._get_request_header(),
+            headers=self.header,
             files=payload
         )
 
@@ -400,7 +395,7 @@ class VDXHelper:
 
         response = requests.post(
             f"{self.url}/verify/upload/file",
-            headers=self._get_request_header(),
+            headers=self.header,
             files=payload
         )
 
@@ -432,7 +427,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/certificates",
-            headers=self._get_request_header(),
+            headers=self.header,
             params=params
         )
 
@@ -449,7 +444,7 @@ class VDXHelper:
 
         response = requests.post(
             f"{self.url}/certificates/{cert_uid}/revoke",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         return HTTPStatus(response.status_code)
@@ -463,7 +458,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/jobs/{job_uid}/certificates",
-            headers=self._get_request_header(),
+            headers=self.header,
             params=params
         )
 
@@ -480,7 +475,7 @@ class VDXHelper:
 
         response = requests.get(
             f"{self.url}/certificates/{cert_uid}/download",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         status = HTTPStatus(response.status_code)
