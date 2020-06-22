@@ -2,7 +2,7 @@ import io
 import time
 from datetime import datetime
 from http import HTTPStatus
-from typing import Optional, NamedTuple, Callable, Any, Dict, TypeVar, Tuple, Set, List
+from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, Set, List, Union, Iterable, Hashable
 from uuid import UUID
 
 import requests
@@ -11,6 +11,7 @@ from werkzeug.datastructures import FileStorage
 T = TypeVar('T')
 Json = Dict[str, Any]
 
+Dicterable = Union[Dict, Iterable[Tuple[Hashable, Any]]]
 
 def get_json_mapper() -> Callable[[Json], Json]:
     def mapper(json_: Json) -> Json:
@@ -190,8 +191,8 @@ class VDXHelper:
 
         return status, document_file
 
-    def get_credentials(self, pagination: dict, mapper: Callable[[Json], T] = get_json_mapper(), *,  # type: ignore # https://github.com/python/mypy/issues/3737
-                        uid: Optional[UUID], metadata: dict, start_date: Optional[datetime] = None,
+    def get_credentials(self, pagination: Dicterable = tuple(), mapper: Callable[[Json], T] = get_json_mapper(), *,  # type: ignore # https://github.com/python/mypy/issues/3737
+                        uid: Optional[UUID] = None, metadata: Dicterable = tuple(), start_date: Optional[datetime] = None,
                         end_date: Optional[datetime] = None, tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
 
         params: dict = {
@@ -201,7 +202,7 @@ class VDXHelper:
             "tags": tags
         }
 
-        params = {**params, **metadata, **pagination}
+        params = {**params, **dict(metadata), **dict(pagination)}
 
         response = requests.get(
             f"{self.url}/credentials",
