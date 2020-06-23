@@ -9,6 +9,8 @@ import requests
 from nndict import nndict
 from werkzeug.datastructures import FileStorage
 
+from vdx_helper.models import EnginePermissionsView
+
 T = TypeVar('T')
 Json = Dict[str, Any]
 
@@ -100,7 +102,19 @@ class VDXHelper:
         return headers
 
     ################## ENGINES #####################
-    def get_partner_permissions(self, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def get_partner_permissions(self, mapper: Optional[Callable[[Json], T]] = None) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        def permissions_mapper(json: Json):
+            permission_views = list()
+            for json_permission in json:
+                permission = EnginePermissionsView(
+                    **json_permission
+                )
+                permission_views.append(permission)
+            return permission_views
+
+        if mapper is None:
+            mapper = permissions_mapper
 
         response = requests.get(
             f"{self.url}/engines",
@@ -108,12 +122,13 @@ class VDXHelper:
         )
 
         status = HTTPStatus(response.status_code)
-        permissions = None
 
-        if status is HTTPStatus.OK:
-            permissions = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, permissions
+        permissions = mapper(response.json())
+
+        return permissions
 
     ################## FILES #####################
     def upload_file(self, file: FileStorage, ignore_duplicated: bool = False,
