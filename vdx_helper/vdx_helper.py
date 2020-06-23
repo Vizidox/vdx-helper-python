@@ -24,6 +24,21 @@ def get_json_mapper() -> Callable[[Json], Json]:
 class VDXError(Exception):
     pass
 
+    def __init__(self, code: HTTPStatus, message: str):
+        self.code = code
+        self.message = message
+
+
+def error_from_response(status, response):
+    if status is not HTTPStatus.OK:
+        try:
+            json_response = response.json()
+            description = json_response.get("description")
+        except ValueError:
+            description = ""
+        return VDXError(code=status, message=description)
+
+
 
 class VDXHelper:
 
