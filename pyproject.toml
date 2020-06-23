@@ -6,7 +6,6 @@ authors = ["Tiago Santos <tiago.santos@vizidox.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-werkzeug = "^0.16.0"
 requests="2.24.0"
 nndict="1.0.0"
 
