@@ -1,7 +1,9 @@
 from datetime import datetime
 from enum import Enum
-from typing import NamedTuple, Optional, List, Mapping
+from typing import NamedTuple, Optional, List, Mapping, Generic, TypeVar
 from uuid import UUID
+
+T = TypeVar('T')
 
 
 class EnginePermissionsView(NamedTuple):
@@ -32,7 +34,7 @@ class EnginePermissionsView(NamedTuple):
     show_prices: bool
 
 
-class PaginatedView(NamedTuple):
+class PaginatedView(NamedTuple, Generic[T]):
     """
     A Paginated View to be returned by the API
     ---
@@ -61,7 +63,7 @@ class PaginatedView(NamedTuple):
     total_pages: int
     per_page: int
     total_items: int
-    items: list
+    items: List[T]
 
 
 class PartnerView(NamedTuple):

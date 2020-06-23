@@ -9,7 +9,7 @@ from uuid import UUID
 import requests
 from nndict import nndict
 
-from vdx_helper.mappers import permissions_mapper, file_mapper
+from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper
 from vdx_helper.typing import Json
 
 T = TypeVar('T')
@@ -167,20 +167,21 @@ class VDXHelper:
 
         return
 
-    def get_files(self, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-
+    def get_files(self, mapper: Callable[[Json], T] = get_paginated_mapper(file_mapper)) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+        # TODO: Pagination for request
         response = requests.get(
             f"{self.url}/files",
             headers=self.header
         )
 
         status = HTTPStatus(response.status_code)
-        files = None
 
-        if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            files = mapper(response.json())
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
 
-        return status, files
+        files = mapper(response.json())
+
+        return files
 
     ################## CREDENTIALS #####################
     def download_credential_file(self, doc_uid: UUID) -> Tuple[HTTPStatus, Optional[io.BytesIO]]:
@@ -378,11 +379,14 @@ class VDXHelper:
 
         return status, verification_response
 
-    def verify_by_certificate(self, file: FileStorage, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def verify_by_certificate(self, filename: str,
+                              file_stream: IOBase,
+                              file_content_type: str,
+                              mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
-        file.stream.seek(0)
+        file_stream.seek(0)
         payload = {
-            "file": (file.filename, file.stream, file.content_type)
+            "file": (filename, file_stream, file_content_type)
         }
 
         response = requests.post(
@@ -398,10 +402,12 @@ class VDXHelper:
 
         return status, verification_response
 
-    def verify_by_file(self, file: FileStorage, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def verify_by_file(self, filename: str,
+                       file_stream: IOBase,
+                       file_content_type: str, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload = {
-            "file": (file.filename, file.stream, file.content_type)
+            "file": (filename, file_stream,  file_content_type)
         }
 
         response = requests.post(
