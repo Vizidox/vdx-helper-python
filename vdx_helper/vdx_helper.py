@@ -148,7 +148,7 @@ class VDXHelper:
 
         return file_summary
 
-    def update_file_attributes(self, core_id: str, filename: str) -> HTTPStatus:
+    def update_file_attributes(self, core_id: str, filename: str) -> None:
 
         payload = {
             "filename": filename
@@ -160,7 +160,12 @@ class VDXHelper:
             json=payload
         )
 
-        return HTTPStatus(response.status_code)
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return
 
     def get_files(self, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
 
