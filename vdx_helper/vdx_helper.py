@@ -2,16 +2,15 @@ import io
 import time
 from datetime import datetime
 from http import HTTPStatus
+from io import IOBase
 from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, Set, List, Union, Iterable, Hashable
 from uuid import UUID
 
 import requests
 from nndict import nndict
-from werkzeug.datastructures import FileStorage
 
+from vdx_helper.mappers import permissions_mapper, file_mapper
 from vdx_helper.typing import Json
-from vdx_helper.mappers import permissions_mapper
-from vdx_helper.models import EnginePermissionsView
 
 T = TypeVar('T')
 
@@ -118,13 +117,16 @@ class VDXHelper:
         return permissions
 
     ################## FILES #####################
-    def upload_file(self, file: FileStorage, ignore_duplicated: bool = False,
-                    mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-
-        file.stream.seek(0)
+    def upload_file(self,
+                    filename: str,
+                    file_stream: IOBase,
+                    file_content_type: str,
+                    ignore_duplicated: bool = False,
+                    mapper: Callable[[Json], T] = file_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+        file_stream.seek(0)
 
         payload = {
-            "file": (file.filename, file.stream, file.content_type),
+            "file": (filename, file_stream, file_content_type),
         }
         form_data = {
             "ignore_duplicated": ignore_duplicated
@@ -138,12 +140,13 @@ class VDXHelper:
         )
 
         status = HTTPStatus(response.status_code)
-        file_summary = None
 
-        if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            file_summary = mapper(response.json())
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
 
-        return status, file_summary
+        file_summary = mapper(response.json())
+
+        return file_summary
 
     def update_file_attributes(self, core_id: str, filename: str) -> HTTPStatus:
 

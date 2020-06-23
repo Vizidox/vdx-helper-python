@@ -1,7 +1,7 @@
 from typing import List
 
 from vdx_helper.typing import Json
-from vdx_helper.models import EnginePermissionsView
+from vdx_helper.models import EnginePermissionsView, FileView
 
 
 def permissions_mapper(json: Json) -> List[EnginePermissionsView]:
@@ -12,3 +12,7 @@ def permissions_mapper(json: Json) -> List[EnginePermissionsView]:
         )
         permission_views.append(permission)
     return permission_views
+
+
+def file_mapper(json: Json) -> FileView:
+    return FileView(**json)
