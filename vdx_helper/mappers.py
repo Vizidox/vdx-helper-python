@@ -3,7 +3,9 @@ from typing import List, TypeVar, Callable
 from uuid import UUID
 
 from vdx_helper.typing import Json
-from vdx_helper.models import EnginePermissionsView, FileView, PaginatedView, CredentialView, JobView, JobStatus
+from vdx_helper.models import EnginePermissionsView, FileView, PaginatedView, CredentialView, JobView, JobStatus, \
+    VerificationResponseView, VerificationStepResult, StepStatus, CertificateView, ClaimView, PartnerView, \
+    VerificationReport, VerificationStatus
 
 T = TypeVar('T')
 
@@ -65,3 +67,49 @@ def job_mapper(json: Json) -> JobView:
         finished_date=datetime.fromisoformat(json["finished_date"]) if "finished_date" in json else None,
         failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None
     )
+
+
+def verification_mapper(json: Json) -> VerificationResponseView:
+    return VerificationResponseView(
+        file=file_mapper(json["file"]) if "file" in json else None,
+        verification=[verification_step_mapper(step) for step in json["verification"]]
+    )
+
+
+def verification_step_mapper(json: Json) -> VerificationStepResult:
+        return VerificationStepResult(
+            name=json["name"],
+            description=json["description"],
+            status=StepStatus(int(json["status"]))
+        )
+
+
+def partner_mapper(json: Json):
+    return PartnerView(
+        **json
+    )
+
+
+def claim_mapper(json: Json) -> ClaimView:
+    return ClaimView(
+        uid=UUID(json["uid"]),
+        partner=partner_mapper(json["partner"]),
+        credential=credential_mapper(json["credential"]),
+        issued_date=datetime.fromisoformat(json["issued_date"]),
+        signature=json["signature"]
+    )
+
+
+def certificate_mapper(json: Json) -> CertificateView:
+    return CertificateView(
+        certificate=claim_mapper(json["certificate"]),
+        last_verification=verification_report_mapper(json["last_verification"]) if "last_verification" in json else None
+    )
+
+
+def verification_report_mapper(json: Json) -> VerificationReport:
+    return VerificationReport(
+        status=VerificationStatus(int(json["status"])),
+        timestamp=datetime.fromisoformat(json["timestamp"])
+    )
+

@@ -9,7 +9,8 @@ from uuid import UUID
 import requests
 from nndict import nndict
 
-from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper
+from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper, \
+    verification_mapper, certificate_mapper
 from vdx_helper.typing import Json
 
 T = TypeVar('T')
@@ -58,7 +59,7 @@ class VDXHelper:
         if self.auth_token is None or time.time() > self.token_expiration_date:
             status, self.auth_token, token_expiration_date = self._get_token()
             if self.auth_token is None or token_expiration_date is None:
-                raise VDXError("API Authentication failed")
+                raise VDXError(status, "API Authentication failed")
             else:
                 self.token_expiration_date = token_expiration_date
 
@@ -223,7 +224,7 @@ class VDXHelper:
         metadata_filters = {key if key.startswith('metadata_') else f"metadata_{key}": value
                             for key, value in nndict(metadata)}
 
-        params = {**params, **metadata_filters, **nndict(**pagination)}
+        params = {**params, **metadata_filters, **nndict(pagination)}
 
         response = requests.get(
             f"{self.url}/credentials",
@@ -331,7 +332,7 @@ class VDXHelper:
             tags=tags
         )
 
-        params = {**params, **pagination}
+        params = {**params, **nndict(pagination)}
 
         response = requests.get(
             f"{self.url}/jobs",
@@ -380,24 +381,25 @@ class VDXHelper:
         return None
 
     ################## CERTIFICATES #####################
-    def verify_by_uid(self, cert_uid: UUID, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def verify_by_uid(self, cert_uid: UUID, mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
             f"{self.url}/verify/{cert_uid}",
             headers=self.header
         )
 
-        verification_response = None
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            verification_response = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, verification_response
+        verification_response = mapper(response.json())
+
+        return verification_response
 
     def verify_by_certificate(self, filename: str,
                               file_stream: IOBase,
                               file_content_type: str,
-                              mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+                              mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         file_stream.seek(0)
         payload = {
@@ -410,16 +412,17 @@ class VDXHelper:
             files=payload
         )
 
-        verification_response = None
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            verification_response = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, verification_response
+        verification_response = mapper(response.json())
+
+        return verification_response
 
     def verify_by_file(self, filename: str,
                        file_stream: IOBase,
-                       file_content_type: str, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+                       file_content_type: str, mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload = {
             "file": (filename, file_stream,  file_content_type)
@@ -431,31 +434,31 @@ class VDXHelper:
             files=payload
         )
 
-        verification_response = None
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            verification_response = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, verification_response
+        verification_response = mapper(response.json())
 
-    def get_certificates(self, pagination: dict, mapper: Callable[[Json], T] = get_json_mapper(), *, # type: ignore # https://github.com/python/mypy/issues/3737
-                         uid: Optional[UUID] = None, job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None,
+        return verification_response
+
+    def get_certificates(self, mapper: Callable[[Json], T] = get_paginated_mapper(certificate_mapper), *, # type: ignore # https://github.com/python/mypy/issues/3737
+                         job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None,
                          start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
                          credential_tags: Optional[str] = None, job_tags: Optional[str] = None,
-                         verification_status: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
+                         verification_status: Optional[str] = None, **pagination) -> T:
 
-        params: dict = {
-            'uid': uid,
-            'job_uid': job_uid,
-            'credential_uid': cred_uid,
-            'issued_date_from': start_date,
-            'issued_date_until': end_date,
-            "credential_tags": credential_tags,
-            "job_tags": job_tags,
-            "verification_status": verification_status
-        }
+        params = nndict(
+            job_uid=job_uid,
+            credential_uid=cred_uid,
+            issued_date_from=start_date,
+            issued_date_until=end_date,
+            credential_tags=credential_tags,
+            job_tags=job_tags,
+            verification_status=verification_status
+        )
 
-        params = {**params, **pagination}
+        params = {**params, **nndict(pagination)}
 
         response = requests.get(
             f"{self.url}/certificates",
@@ -463,47 +466,47 @@ class VDXHelper:
             params=params
         )
 
-        certificates = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            certificates_json = response.json()
-            certificates = mapper(certificates_json)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, certificates
+        certificates_json = response.json()
+        certificates = mapper(certificates_json)
 
-    def revoke_certificate(self, cert_uid: UUID) -> HTTPStatus:
+        return certificates
+
+    def revoke_certificate(self, cert_uid: UUID) -> None:
 
         response = requests.post(
             f"{self.url}/certificates/{cert_uid}/revoke",
             headers=self.header
         )
 
-        return HTTPStatus(response.status_code)
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-    def get_job_certificates(self, job_uid: UUID, pagination: dict,
-                             mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return
 
-        params: dict = {}
-
-        params = {**params, **pagination}
+    def get_job_certificates(self, job_uid: UUID,
+                             mapper: Callable[[Json], T] = get_paginated_mapper(certificate_mapper), **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
             f"{self.url}/jobs/{job_uid}/certificates",
             headers=self.header,
-            params=params
+            params=nndict(pagination)
         )
 
-        certificates = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            certificates_json = response.json()
-            certificates = mapper(certificates_json)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        certificates_json = response.json()
+        certificates = mapper(certificates_json)
 
         return status, certificates
 
-    def download_certificate(self, cert_uid: UUID) ->Tuple[HTTPStatus, Optional[io.BytesIO]]:
+    def download_certificate(self, cert_uid: UUID) -> io.BytesIO:
 
         response = requests.get(
             f"{self.url}/certificates/{cert_uid}/download",
@@ -511,10 +514,11 @@ class VDXHelper:
         )
 
         status = HTTPStatus(response.status_code)
-        certificate = None
 
-        if status is HTTPStatus.OK:
-            certificate = io.BytesIO(response.content)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, certificate
+        certificate = io.BytesIO(response.content)
+
+        return certificate
 
