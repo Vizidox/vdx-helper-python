@@ -9,7 +9,7 @@ from uuid import UUID
 import requests
 from nndict import nndict
 
-from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper
+from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper
 from vdx_helper.typing import Json
 
 T = TypeVar('T')
@@ -193,7 +193,7 @@ class VDXHelper:
         return files
 
     ################## CREDENTIALS #####################
-    def download_credential_file(self, doc_uid: UUID) -> Tuple[HTTPStatus, Optional[io.BytesIO]]:
+    def download_credential_file(self, doc_uid: UUID) -> io.BytesIO:
 
         response = requests.get(
             f"{self.url}/credentials/{doc_uid}/file",
@@ -201,17 +201,18 @@ class VDXHelper:
         )
 
         status = HTTPStatus(response.status_code)
-        document_file = None
 
-        if status is HTTPStatus.OK:
-            document_file = io.BytesIO(response.content)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, document_file
+        document_file = io.BytesIO(response.content)
 
-    def get_credentials(self, pagination: Dicterable = tuple(), mapper: Callable[[Json], T] = get_json_mapper(), *,  # type: ignore # https://github.com/python/mypy/issues/3737
+        return document_file
+
+    def get_credentials(self, mapper: Callable[[Json], T] = get_paginated_mapper(credential_mapper), *,  # type: ignore # https://github.com/python/mypy/issues/3737
                         metadata: Dicterable = tuple(),
                         start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
-                        tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
+                        tags: Optional[str] = None, **pagination) -> T:
 
         params = nndict(
             upload_date_from=start_date,
@@ -219,7 +220,10 @@ class VDXHelper:
             tags=tags
         )
 
-        params = {**params, **dict(metadata), **dict(pagination)}
+        metadata_filters = {key if key.startswith('metadata_') else f"metadata_{key}": value
+                            for key, value in nndict(metadata)}
+
+        params = {**params, **metadata_filters, **nndict(**pagination)}
 
         response = requests.get(
             f"{self.url}/credentials",
@@ -227,28 +231,28 @@ class VDXHelper:
             params=params
         )
 
-        document_views = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            document_views = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, document_views
+        document_views = mapper(response.json())
 
-    def get_credential(self, cred_uid: UUID, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return document_views
+
+    def get_credential(self, cred_uid: UUID, mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
             f"{self.url}/credentials/{cred_uid}",
             headers=self.header
         )
 
-        credential = None
-
         status = HTTPStatus(response.status_code)
         if status is HTTPStatus.OK:
-            credential = mapper(response.json())
+            raise error_from_response(status, response)
 
-        return status, credential
+        credential = mapper(response.json())
+
+        return credential
 
     def create_credential(self, title: str, metadata: dict, tags: Set[str], core_id: str, expiry_date: Optional[str],
                           mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
