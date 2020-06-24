@@ -167,11 +167,20 @@ class VDXHelper:
 
         return
 
-    def get_files(self, mapper: Callable[[Json], T] = get_paginated_mapper(file_mapper)) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
-        # TODO: Pagination for request
+    def get_files(self, mapper: Callable[[Json], T] = get_paginated_mapper(file_mapper),
+                  upload_date_from: Optional[datetime] = None, upload_date_until: Optional[datetime] = None,
+                  **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        params = nndict(
+            upload_date_from=upload_date_from,
+            upload_date_until=upload_date_until,
+            **pagination
+        )
+
         response = requests.get(
             f"{self.url}/files",
-            headers=self.header
+            headers=self.header,
+            params=params
         )
 
         status = HTTPStatus(response.status_code)
