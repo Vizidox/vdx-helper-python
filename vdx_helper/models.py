@@ -422,7 +422,6 @@ class JobView(NamedTuple):
 
     """
     uid: UUID
-    partner: PartnerView
     chain: str
     tags: List[str]
     status: JobStatus

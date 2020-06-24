@@ -3,7 +3,7 @@ from typing import List, TypeVar, Callable
 from uuid import UUID
 
 from vdx_helper.typing import Json
-from vdx_helper.models import EnginePermissionsView, FileView, PaginatedView, CredentialView
+from vdx_helper.models import EnginePermissionsView, FileView, PaginatedView, CredentialView, JobView, JobStatus
 
 T = TypeVar('T')
 
@@ -51,4 +51,17 @@ def credential_mapper(json: Json) -> CredentialView:
         upload_date=datetime.fromisoformat(json["upload_date"]),
         tags=json["tags"],
         expiry_date=datetime.fromisoformat(json["expiry_date"])
+    )
+
+
+def job_mapper(json: Json) -> JobView:
+    return JobView(
+        uid=UUID(json["uid"]),
+        chain=json["chain"],
+        tags=json["tags"],
+        status=JobStatus(int(json["status"])),
+        start_date=datetime.fromisoformat(json["start_date"]),
+        issued_date=datetime.fromisoformat(json["issued_date"]),
+        finished_date=datetime.fromisoformat(json["finished_date"]) if "finished_date" in json else None,
+        failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None
     )

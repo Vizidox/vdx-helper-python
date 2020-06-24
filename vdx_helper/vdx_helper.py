@@ -9,7 +9,7 @@ from uuid import UUID
 import requests
 from nndict import nndict
 
-from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper
+from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper
 from vdx_helper.typing import Json
 
 T = TypeVar('T')
@@ -247,25 +247,22 @@ class VDXHelper:
         )
 
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
+        if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
         credential = mapper(response.json())
 
         return credential
 
-    def create_credential(self, title: str, metadata: dict, tags: Set[str], core_id: str, expiry_date: Optional[str],
-                          mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-        payload: Json = {
-            "title": title,
-            "metadata": metadata,
-            "file_id": core_id,
-            "tags": list(tags),
-            "expiry_date": expiry_date
-        }
-
-        if expiry_date is not None:
-            payload['expiry_date'] = expiry_date
+    def create_credential(self, title: str, metadata: Dicterable, tags: Iterable[str], core_id: str,
+                          expiry_date: Optional[str], mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+        payload = nndict(
+            title=title,
+            metadata=dict(metadata),
+            file_id=core_id,
+            tags=list(set(tags)),
+            expiry_date=expiry_date
+        )
 
         response = requests.post(
             f"{self.url}/credentials",
@@ -273,17 +270,17 @@ class VDXHelper:
             json=payload
         )
 
-        document = None
-
         status = HTTPStatus(response.status_code)
-        if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            document = mapper(response.json())
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
 
-        return status, document
+        document = mapper(response.json())
 
-    def update_credential_tags(self, updated_credential_tags: List[dict]) -> HTTPStatus:
+        return document
 
-        payload: Json = {
+    def update_credential_tags(self, updated_credential_tags: Iterable[Dict[str, List[str]]]) -> None:
+
+        payload = {
             "credentials": updated_credential_tags,
         }
         response = requests.patch(
@@ -293,16 +290,19 @@ class VDXHelper:
         )
 
         status = HTTPStatus(response.status_code)
-        return status
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return
 
     ################## JOBS #####################
-    def issue_job(self, engine: str, credentials: List[UUID], tags: Set[str],
-                  mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def issue_job(self, engine: str, credentials: List[UUID], tags: Iterable[str],
+                  mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload: Json = {
             "engine": engine,
             "credentials": credentials,
-            "tags": list(tags),
+            "tags": list(set(tags)),
         }
 
         response = requests.post(
@@ -311,26 +311,25 @@ class VDXHelper:
             json=payload
         )
 
-        job = None
-
         status = HTTPStatus(response.status_code)
-        if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            job = mapper(response.json())
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
 
-        return status, job
+        job = mapper(response.json())
 
-    def get_jobs(self, pagination: dict, mapper: Callable[[Json], T] = get_json_mapper(), *,  # type: ignore # https://github.com/python/mypy/issues/3737
-                 uid: Optional[UUID] = None, job_status: Optional[str] = None,
+        return job
+
+    def get_jobs(self, mapper: Callable[[Json], T] = get_paginated_mapper(job_mapper), *,  # type: ignore # https://github.com/python/mypy/issues/3737
+                 job_status: Optional[str] = None,
                  start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
-                 tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
+                 tags: Optional[str] = None, **pagination) -> T:
 
-        params: dict = {
-            'uid': uid,
-            'status': job_status,
-            'issued_date_from': start_date,
-            'issued_date_until': end_date,
-            "tags": tags
-        }
+        params = nndict(
+            status=job_status,
+            issued_date_from=start_date,
+            issued_date_until=end_date,
+            tags=tags
+        )
 
         params = {**params, **pagination}
 
@@ -340,30 +339,30 @@ class VDXHelper:
             params=params
         )
 
-        issuer_jobs = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            issuer_jobs = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, issuer_jobs
+        issuer_jobs = mapper(response.json())
 
-    def get_job(self, job_uid: UUID, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return issuer_jobs
+
+    def get_job(self, job_uid: UUID, mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
             f"{self.url}/jobs/{job_uid}",
             headers=self.header
         )
 
-        job = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            job = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, job
+        job = mapper(response.json())
 
-    def update_job_tags(self, updated_job_tags: List[dict]) -> HTTPStatus:
+        return job
+
+    def update_job_tags(self, updated_job_tags: List[dict]) -> None:
 
         payload: Json = {
             "jobs": updated_job_tags,
@@ -375,7 +374,10 @@ class VDXHelper:
         )
 
         status = HTTPStatus(response.status_code)
-        return status
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return None
 
     ################## CERTIFICATES #####################
     def verify_by_uid(self, cert_uid: UUID, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
