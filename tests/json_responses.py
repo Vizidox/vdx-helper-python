@@ -1,6 +1,22 @@
 from datetime import datetime
 
-from vdx_helper.models import FileView
+from vdx_helper.models import FileView, EnginePermissionsView
+
+engine_json = [
+    {
+        "name": "bitcoin",
+        "is_allowed": "true",
+        "show_prices": "true"
+    },
+    {
+        "name": "dogecoin",
+        "is_allowed": "false",
+        "show_prices": "false"
+    }
+]
+
+mapped_engine_permissions = [EnginePermissionsView(name="bitcoin", is_allowed=True, show_prices=True),
+                             EnginePermissionsView(name="dogecoin", is_allowed=False, show_prices=False)]
 
 file_json = {
     "id": "123",
