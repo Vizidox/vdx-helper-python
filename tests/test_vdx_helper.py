@@ -86,7 +86,7 @@ class VdxHelperTest(unittest.TestCase):
             "Authorization": "Bearer " + "vizidox-authorization",
             "Accept": "application/json"
         }
-        header = vdx_helper._get_request_header()
+        header = vdx_helper.header
         self.assertDictEqual(expected_header, header)
     
     def new_mapper(self) -> Callable:
@@ -95,96 +95,71 @@ class VdxHelperTest(unittest.TestCase):
             new_json['testing_key'] = 'testing_value'
             return new_json
         return test_mapper
-    
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_request_header')
-    @patch('vdx_helper.vdx_helper.requests')
-    def test_engine_cost(self, requests, _get_request_header):
-        vdx_helper = self.get_vdx_helper()
-        response = MagicMock()
-        response.json.return_value = self.default_json_value
-        requests.get.return_value = response
-        # OK status
-        response.status_code = HTTPStatus.OK
-        status, currency_amount = vdx_helper.engine_cost(engine_name='abc', n=1)
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(currency_amount, self.default_json_value)
-        
-        # not OK status
-        response.status_code = HTTPStatus.CONFLICT
-        status, currency_amount = vdx_helper.engine_cost(engine_name='abc', n=1)
-        self.assertEqual(status, HTTPStatus.CONFLICT)
-        self.assertIsNone(currency_amount)
-        
-        # new mapper
-        response.status_code = HTTPStatus.OK
-        status, currency_amount = vdx_helper.engine_cost(engine_name='abc', n=1, mapper=self.new_mapper())
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(currency_amount, self.new_mapper()(self.default_json_value))
 
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_request_header')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
-    def test_get_partner_permissions(self, requests, _get_request_header):
+    def test_get_partner_permissions(self, requests, header):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
-        response.json.return_value = self.default_json_value
+        response.json.return_value = engine_json
         requests.get.return_value = response
         # OK status
         response.status_code = HTTPStatus.OK
-        status, permissions = vdx_helper.get_partner_permissions()
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(permissions, self.default_json_value)
+        permissions = vdx_helper.get_partner_permissions()
+        self.assertListEqual(permissions, mapped_engine_permissions)
         
         # not OK status
+        permissions = None
         response.status_code = HTTPStatus.CONFLICT
-        status, permissions = vdx_helper.get_partner_permissions()
-        self.assertEqual(status, HTTPStatus.CONFLICT)
-        self.assertIsNone(permissions)
+        try:
+            permissions = vdx_helper.get_partner_permissions()
+        except VDXError:
+            self.assertIsNone(permissions)
         
-        # new mapper
+        # json mapper
         response.status_code = HTTPStatus.OK
-        status, permissions = vdx_helper.get_partner_permissions(mapper=self.new_mapper())
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(permissions, self.new_mapper()(self.default_json_value))
+        permissions = vdx_helper.get_partner_permissions(mapper=get_json_mapper())
+        self.assertListEqual(permissions, engine_json)
         
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_request_header')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
-    def test_upload_file(self, requests, _get_request_header):
+    def test_upload_file(self, requests, header):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         #file
-        file_ = MagicMock()
-        file_.filename = "file_name"
-        file_.content_type = "content_type"
-        
+        filename = "name"
+        stream = MagicMock()
+        content_type = "content_type"
+
         #response
-        response.json.return_value = self.default_json_value
+        response.json.return_value = file_json
         requests.post.return_value = response
-        
+
         # OK status
         response.status_code = HTTPStatus.OK
-        status, permissions = vdx_helper.upload_file(file_)
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(permissions, self.default_json_value)
+        file_summary = vdx_helper.upload_file(filename, stream, content_type)
+        self.assertEqual(file_summary, mapped_file)
         file_info = requests.post.call_args[1]['files']['file']
-        self.assertEqual(file_info[0], "file_name")
+        self.assertEqual(file_info[0], "name")
         self.assertEqual(file_info[2], "content_type")
         
         # not OK status
+        file_summary = None
         response.status_code = HTTPStatus.CONFLICT
-        status, permissions = vdx_helper.upload_file(file_)
-        self.assertEqual(status, HTTPStatus.CONFLICT)
-        self.assertIsNone(permissions)
-        file_info = requests.post.call_args[1]['files']['file']
-        self.assertEqual(file_info[0], "file_name")
-        self.assertEqual(file_info[2], "content_type")
+        try:
+            file_summary = vdx_helper.upload_file(filename, stream, content_type)
+        except VDXError:
+            self.assertIsNone(file_summary)
+            file_info = requests.post.call_args[1]['files']['file']
+            self.assertEqual(file_info[0], "name")
+            self.assertEqual(file_info[2], "content_type")
         
-        # new mapper
+        # default mapper
         response.status_code = HTTPStatus.OK
-        status, permissions = vdx_helper.upload_file(file_, mapper=self.new_mapper())
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(permissions, self.new_mapper()(self.default_json_value))
+        json_result = vdx_helper.upload_file(filename, stream, content_type, mapper=get_json_mapper())
+        self.assertDictEqual(json_result, file_json)
         file_info = requests.post.call_args[1]['files']['file']
-        self.assertEqual(file_info[0], "file_name")
+        self.assertEqual(file_info[0], "name")
         self.assertEqual(file_info[2], "content_type")
         
     @patch('vdx_helper.vdx_helper.VDXHelper._get_request_header')
@@ -196,7 +171,7 @@ class VdxHelperTest(unittest.TestCase):
         _compute_core_file_id.return_value = 'abc'
         file_summary = MagicMock()
         filename = 'vizidox'
-        
+
         #response
         response.status_code = HTTPStatus.OK
         requests.put.return_value = response
