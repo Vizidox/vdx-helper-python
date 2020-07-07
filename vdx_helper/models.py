@@ -121,6 +121,9 @@ class FileView(NamedTuple):
     uploaded: datetime
     file_type: Optional[str]
 
+    def __eq__(self, obj: 'FileView'):
+        return isinstance(obj, FileView) and obj.id == self.id
+
 
 class CredentialView(NamedTuple):
     """

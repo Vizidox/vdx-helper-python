@@ -1,4 +1,5 @@
 from datetime import datetime
+from json import loads
 from typing import List, TypeVar, Callable
 from uuid import UUID
 
@@ -28,7 +29,9 @@ def permissions_mapper(json: Json) -> List[EnginePermissionsView]:
     permission_views = list()
     for json_permission in json:
         permission = EnginePermissionsView(
-            **json_permission
+            name=json_permission['name'],
+            is_allowed=loads(json_permission['is_allowed']),
+            show_prices=loads(json_permission["show_prices"])
         )
         permission_views.append(permission)
     return permission_views
