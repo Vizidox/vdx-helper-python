@@ -196,7 +196,8 @@ class CredentialView(NamedTuple):
     uid: UUID
     title: str
     metadata: dict
-    file: Optional[FileView]
+    files: List[FileView]
+    credentials: List['CredentialView']
     upload_date: datetime
     tags: List[str]
     expiry_date: Optional[datetime]
@@ -206,7 +207,8 @@ class CredentialView(NamedTuple):
                and obj.uid == self.uid \
                and obj.title == self.title \
                and obj.metadata == self.metadata \
-               and obj.file == self.file \
+               and all([first == second for first, second in zip(obj.files, self.files)]) \
+               and all([first == second for first, second in zip(obj.credentials, self.credentials)]) \
                and obj.upload_date == self.upload_date \
                and obj.tags == self.tags \
                and obj.expiry_date == self.expiry_date
