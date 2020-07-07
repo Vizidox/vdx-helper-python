@@ -14,10 +14,10 @@ T = TypeVar('T')
 def get_paginated_mapper(mapper: Callable[[Json], T]) -> Callable[[Json], 'PaginatedView[T]']:
     def paginated_mapper(json: Json) -> 'PaginatedView[T]':
         paginated_view = PaginatedView(
-            page=json["page"],
-            total_pages=json["total_pages"],
-            per_page=json["per_page"],
-            total_items=json["total_items"],
+            page=int(json["page"]),
+            total_pages=int(json["total_pages"]),
+            per_page=int(json["per_page"]),
+            total_items=int(json["total_items"]),
             items=[mapper(json_item) for json_item in json["items"]]
         )
         return paginated_view
@@ -52,7 +52,8 @@ def credential_mapper(json: Json) -> CredentialView:
         uid=UUID(json["uid"]),
         title=json["title"],
         metadata=json["metadata"],
-        file=file_mapper(json["file"]) if "file" in json else None,
+        files=[file_mapper(file) for file in json["files"]],
+        credentials=[credential_mapper(credential) for credential in json["credentials"]],
         upload_date=datetime.fromisoformat(json["upload_date"]),
         tags=json["tags"],
         expiry_date=datetime.fromisoformat(json["expiry_date"])
