@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from http import HTTPStatus
 from io import IOBase
-from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, Set, List, Union, Iterable, Hashable
+from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, List, Union, Iterable, Hashable
 from uuid import UUID
 
 import requests
@@ -36,7 +36,7 @@ def error_from_response(status, response):
         try:
             json_response = response.json()
             description = json_response.get("description")
-        except ValueError:
+        except (ValueError, AttributeError):
             description = ""
         return VDXError(code=status, message=description)
 
