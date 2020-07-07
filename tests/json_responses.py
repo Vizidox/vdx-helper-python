@@ -1,6 +1,7 @@
 from datetime import datetime
+from uuid import UUID
 
-from vdx_helper.models import FileView, EnginePermissionsView
+from vdx_helper.models import FileView, EnginePermissionsView, CredentialView, PaginatedView
 
 engine_json = [
     {
@@ -39,3 +40,19 @@ credential_json = {
     "tags": ["example"],
     "expiry_date": "2021-01-01T15:34:05.814607+00:00"
 }
+
+mapped_credential = CredentialView(uid=UUID("189e4e5c-833d-430b-9baa-5230841d997f"), title="title", metadata={},
+                                   files=[mapped_file], credentials=[],
+                                   upload_date=datetime.fromisoformat('2020-01-01T11:29:28.977178+00:00'),
+                                   tags=["example"],
+                                   expiry_date=datetime.fromisoformat("2021-01-01T15:34:05.814607+00:00"))
+
+paginated_credential = {
+    "page": "1",
+    "total_pages": "1",
+    "per_page": "20",
+    "total_items": "1",
+    "items": [credential_json]
+}
+
+mapped_paginated_credential = PaginatedView(page=1, total_pages=1, per_page=20, total_items=1, items=[mapped_credential])
