@@ -33,6 +33,12 @@ class EnginePermissionsView(NamedTuple):
     is_allowed: bool
     show_prices: bool
 
+    def __eq__(self, obj: 'EnginePermissionsView'):
+        return isinstance(obj, EnginePermissionsView) \
+               and obj.name == self.name \
+               and obj.is_allowed == self.is_allowed \
+               and obj.show_prices == self.show_prices
+
 
 class PaginatedView(NamedTuple, Generic[T]):
     """
@@ -65,6 +71,14 @@ class PaginatedView(NamedTuple, Generic[T]):
     total_items: int
     items: List[T]
 
+    def __eq__(self, obj: 'PaginatedView'):
+        return isinstance(obj, PaginatedView) \
+               and obj.page == self.page \
+               and obj.total_pages == self.total_pages \
+               and obj.per_page == self.per_page \
+               and obj.total_items == self.total_items \
+               and all([first == second for first, second in zip(obj.items, self.items)])
+
 
 class PartnerView(NamedTuple):
     """
@@ -85,6 +99,9 @@ class PartnerView(NamedTuple):
     """
     id: str
     name: str
+
+    def __eq__(self, obj: 'PartnerView'):
+        return isinstance(obj, PartnerView) and obj.id == self.id and obj.name == self.name
 
 
 class FileView(NamedTuple):
@@ -122,7 +139,12 @@ class FileView(NamedTuple):
     file_type: Optional[str]
 
     def __eq__(self, obj: 'FileView'):
-        return isinstance(obj, FileView) and obj.id == self.id
+        return isinstance(obj, FileView) \
+               and obj.id == self.id \
+               and obj.file_hash == self.file_hash \
+               and obj.filename == self.filename \
+               and obj.uploaded == self.uploaded \
+               and obj.file_type == self.file_type
 
 
 class CredentialView(NamedTuple):
@@ -179,6 +201,16 @@ class CredentialView(NamedTuple):
     tags: List[str]
     expiry_date: Optional[datetime]
 
+    def __eq__(self, obj: 'CredentialView'):
+        return isinstance(obj, CredentialView) \
+               and obj.uid == self.uid \
+               and obj.title == self.title \
+               and obj.metadata == self.metadata \
+               and obj.file == self.file \
+               and obj.upload_date == self.upload_date \
+               and obj.tags == self.tags \
+               and obj.expiry_date == self.expiry_date
+
 
 class ClaimView(NamedTuple):
     """
@@ -217,6 +249,9 @@ class ClaimView(NamedTuple):
     credential: CredentialView
     issued_date: datetime
     signature: str
+
+    def __eq__(self, obj: 'ClaimView'):
+        return isinstance(obj, ClaimView) and obj.uid == self.uid
 
 
 class VerificationStatus(Enum):
