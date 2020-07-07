@@ -46,7 +46,7 @@ def file_mapper(json: Json) -> FileView:
 
 def credential_mapper(json: Json) -> CredentialView:
     return CredentialView(
-        uid=UUID(),
+        uid=UUID(json["uid"]),
         title=json["title"],
         metadata=json["metadata"],
         file=file_mapper(json["file"]) if "file" in json else None,
