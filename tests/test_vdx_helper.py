@@ -1,12 +1,18 @@
-from http import HTTPStatus
-from vdx_helper.vdx_helper import VDXHelper, VDXError
-from unittest.mock import patch, MagicMock
-from typing import Dict, Any, Callable
-import requests
-import unittest
 import copy
+import unittest
+from http import HTTPStatus
+from typing import Dict, Any, Callable
+from unittest.mock import patch, MagicMock
+from uuid import UUID
+
+from tests.json_responses import file_json, mapped_file, mapped_engine_permissions, engine_json, credential_json, \
+    mapped_credential, paginated_credential, mapped_paginated_credential
+from vdx_helper.mappers import file_mapper, credential_mapper
+from vdx_helper.vdx_helper import VDXHelper, VDXError, get_json_mapper
 
 Json = Dict[str, Any]
+
+
 class VdxHelperTest(unittest.TestCase):
     def setUp(self):
         self.url = "vizidox.com"
@@ -25,8 +31,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         self.assertEqual(self.url, vdx_helper.url)
         self.assertEqual(self.keycloak_url, vdx_helper.keycloak_url)
-    
-    
+
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.time')
     def test_get_token(self, time, requests):
@@ -154,102 +159,91 @@ class VdxHelperTest(unittest.TestCase):
             self.assertEqual(file_info[0], "name")
             self.assertEqual(file_info[2], "content_type")
         
-        # default mapper
+        # json mapper
         response.status_code = HTTPStatus.OK
         json_result = vdx_helper.upload_file(filename, stream, content_type, mapper=get_json_mapper())
         self.assertDictEqual(json_result, file_json)
         file_info = requests.post.call_args[1]['files']['file']
         self.assertEqual(file_info[0], "name")
         self.assertEqual(file_info[2], "content_type")
-        
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_request_header')
-    @patch('vdx_helper.vdx_helper.VDXHelper._compute_core_file_id')
+
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
-    def test_update_file_attributes(self, requests, _compute_core_file_id, _get_request_header):
+    def test_update_file_attributes(self, requests, header):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
-        _compute_core_file_id.return_value = 'abc'
-        file_summary = MagicMock()
-        filename = 'vizidox'
+        filename = 'new_name'
 
         #response
         response.status_code = HTTPStatus.OK
         requests.put.return_value = response
-        
-        # encrypted_hash case
-        file_summary.encrypted_hash = "encrypted_hash"
-        file_summary.file_hash = "file_hash"
-        status = vdx_helper.update_file_attributes(file_summary=file_summary, filename=filename)
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertEqual(f"{self.url}/files/abc/attributes", requests.put.call_args[0][0])
-        self.assertEqual(_compute_core_file_id.call_args[0][0], "encrypted_hash")
-        
-        # file_hash case
-        file_summary.encrypted_hash = None
-        file_summary.file_hash = "file_hash"
-        status = vdx_helper.update_file_attributes(file_summary=file_summary, filename=filename)
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertEqual(f"{self.url}/files/abc/attributes", requests.put.call_args[0][0])
-        self.assertEqual(_compute_core_file_id.call_args[0][0], "file_hash")
+
+        vdx_helper.update_file_attributes(core_id="core_id", filename=filename)
+        self.assertEqual(f"{self.url}/files/core_id/attributes", requests.put.call_args[0][0])
+
+        #invalid ID
+        response.status_code = HTTPStatus.NOT_FOUND
+        try:
+            vdx_helper.update_file_attributes(core_id="invalid", filename=filename)
+        except VDXError:
+            self.assertEqual(f"{self.url}/files/invalid/attributes", requests.put.call_args[0][0])
     
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.io')
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_request_header')
-    def test_download_credential_file(self, _get_request_header, io, requests):
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_download_credential_file(self, header, io, requests):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
         io.BytesIO.return_value = "document_file"
-        doc_uid = 'doc_uid'
-        
+        cred_uid = "189e4e5c-833d-430b-9baa-5230841d997f"
+
         # OK case
         response.status_code = HTTPStatus.OK
-        status, document_file = vdx_helper.download_credential_file(doc_uid)
-        self.assertEqual(status, HTTPStatus.OK)
+        document_file = vdx_helper.download_credential_file(UUID(cred_uid))
         self.assertEqual("document_file", document_file)
-        self.assertEqual(f"{self.url}/credentials/{doc_uid}/file", requests.get.call_args[0][0])
+        self.assertEqual(f"{self.url}/credentials/{cred_uid}/file", requests.get.call_args[0][0])
         
         # not OK case
+        document_file = None
         response.status_code = HTTPStatus.CONFLICT
-        status, document_file = vdx_helper.download_credential_file(doc_uid)
-        self.assertEqual(status, HTTPStatus.CONFLICT)
-        self.assertIsNone(document_file)
-        self.assertEqual(f"{self.url}/credentials/{doc_uid}/file", requests.get.call_args[0][0])
-        
+        try:
+            document_file = vdx_helper.download_credential_file(UUID(cred_uid))
+        except VDXError:
+            self.assertIsNone(document_file)
+            self.assertEqual(f"{self.url}/credentials/{cred_uid}/file", requests.get.call_args[0][0])
+
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_pagination_params')
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_request_header')
-    def test_get_credentials(self, _get_request_header, _get_pagination_params, requests):
+    def test_get_credentials(self, requests, header):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
-        response.json.return_value = self.default_json_value
+        response.json.return_value = paginated_credential
         
         # OK case
         response.status_code = HTTPStatus.OK
-        status, document_file = vdx_helper.get_credentials()
-        self.assertEqual(status, HTTPStatus.OK)
-        self.assertDictEqual(self.default_json_value, document_file)
+        credentials = vdx_helper.get_credentials()
+        self.assertEqual(credentials, mapped_paginated_credential)
         self.assertEqual(f"{self.url}/credentials", requests.get.call_args[0][0])
         
         # not OK case
+        credentials = None
         response.status_code = HTTPStatus.CONFLICT
-        status, document_file = vdx_helper.get_credentials()
-        self.assertEqual(status, HTTPStatus.CONFLICT)
-        self.assertIsNone(document_file)
-        self.assertEqual(f"{self.url}/credentials", requests.get.call_args[0][0])
+        try:
+            credentials = vdx_helper.get_credentials()
+        except VDXError:
+            self.assertIsNone(credentials)
+            self.assertEqual(f"{self.url}/credentials", requests.get.call_args[0][0])
         
-        # with custom mapper
+        # with json mapper
         response.status_code = HTTPStatus.OK
-        status, document_file = vdx_helper.get_credentials(self.new_mapper())
-        self.assertEqual(status, HTTPStatus.OK)
+        credentials = vdx_helper.get_credentials(mapper=get_json_mapper())
         self.assertEqual(f"{self.url}/credentials", requests.get.call_args[0][0])
-        self.assertDictEqual(document_file, self.new_mapper()(self.default_json_value))
+        self.assertDictEqual(credentials, paginated_credential)
         
     @patch('vdx_helper.vdx_helper.requests')
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_pagination_params')
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_request_header')
-    def test_get_credential(self, _get_request_header, _get_pagination_params, requests):
+    def test_get_credential(self, requests):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
