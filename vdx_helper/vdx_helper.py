@@ -212,7 +212,7 @@ class VDXHelper:
         return document_file
 
     def get_credentials(self, mapper: Callable[[Json], T] = get_paginated_mapper(credential_mapper), *,  # type: ignore # https://github.com/python/mypy/issues/3737
-                        metadata: Dicterable = tuple(), uid: Optional[UUID],
+                        metadata: Dicterable = tuple(), uid: Optional[UUID] = None,
                         start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
                         and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
 
@@ -354,9 +354,10 @@ class VDXHelper:
             issued_date_from=start_date,
             issued_date_until=end_date,
             and_tags=and_tags,
-            or_tags=or_tags,
-            **pagination
+            or_tags=or_tags
         )
+
+        params = {**params, **nndict(pagination)}
 
         response = requests.get(
             f"{self.url}/jobs",
@@ -474,7 +475,7 @@ class VDXHelper:
                          verification_status: Optional[str] = None, **pagination) -> T:
 
         params = nndict(
-            uid= uid,
+            uid=uid,
             job_uid=job_uid,
             credential_uid=cred_uid,
             issued_date_from=start_date,
@@ -525,6 +526,7 @@ class VDXHelper:
         )
 
         params = {**params, **nndict(pagination)}
+
         response = requests.get(
             f"{self.url}/jobs/{job_uid}/certificates",
             headers=self.header,
@@ -538,11 +540,11 @@ class VDXHelper:
         certificates_json = response.json()
         certificates = mapper(certificates_json)
 
-        return status, certificates
+        return certificates
 
-    def get_job_credentials(self, job_uid: UUID, pagination: dict, and_tags: Optional[str] = None,
-                            or_tags: Optional[str] = None,
-                            mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def get_job_credentials(self, job_uid: UUID, and_tags: Optional[str] = None,
+                            or_tags: Optional[str] = None, mapper: Callable[[Json], T] = get_paginated_mapper(credential_mapper),
+                            **pagination) -> Optional[T]:  # type: ignore # https://github.com/python/mypy/issues/3737
         params = nndict(
             and_tags=and_tags,
             or_tags=or_tags
@@ -561,7 +563,7 @@ class VDXHelper:
 
         credentials = mapper(response.json())
 
-        return status, credentials
+        return credentials
 
     def download_certificate(self, cert_uid: UUID) -> io.BytesIO:
 

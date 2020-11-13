@@ -63,29 +63,31 @@ def credential_mapper(json: Json) -> CredentialView:
 def job_mapper(json: Json) -> JobView:
     return JobView(
         uid=UUID(json["uid"]),
+        partner=partner_mapper(json["partner"]),
         chain=json["chain"],
         tags=json["tags"],
         status=JobStatus(int(json["status"])),
-        start_date=datetime.fromisoformat(json["start_date"]),
-        issued_date=datetime.fromisoformat(json["issued_date"]),
+        created_date=datetime.fromisoformat(json["created_date"]),
+        start_date=datetime.fromisoformat(json["start_date"]) if "start_date" in json else None,
+        issued_date=datetime.fromisoformat(json["issued_date"]) if "issued_date" in json else None,
         finished_date=datetime.fromisoformat(json["finished_date"]) if "finished_date" in json else None,
-        failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None
+        failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None,
+        scheduled_date=datetime.fromisoformat(json["scheduled_date"]) if "scheduled_date" in json else None
     )
 
 
 def verification_mapper(json: Json) -> VerificationResponseView:
     return VerificationResponseView(
-        file=file_mapper(json["file"]) if "file" in json else None,
         verification=[verification_step_mapper(step) for step in json["verification"]]
     )
 
 
 def verification_step_mapper(json: Json) -> VerificationStepResult:
-        return VerificationStepResult(
-            name=json["name"],
-            description=json["description"],
-            status=StepStatus(int(json["status"]))
-        )
+    return VerificationStepResult(
+        name=json["name"],
+        description=json["description"],
+        status=StepStatus(int(json["status"]))
+    )
 
 
 def partner_mapper(json: Json):
@@ -116,4 +118,3 @@ def verification_report_mapper(json: Json) -> VerificationReport:
         status=VerificationStatus(int(json["status"])),
         timestamp=datetime.fromisoformat(json["timestamp"])
     )
-
