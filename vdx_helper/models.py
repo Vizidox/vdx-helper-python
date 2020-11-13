@@ -156,7 +156,8 @@ class CredentialView(NamedTuple):
     - uid
     - title
     - metadata
-    - file
+    - files
+    - credentials
     - upload_date
     - tags
     properties:
@@ -172,10 +173,18 @@ class CredentialView(NamedTuple):
         type: object
         additionalProperties: {}
         description: 'Additional data in the credential'
-      file:
-        type: object
-        title: File
+      files:
+        type: array
+        title: Files
         $ref: '#/definitions/File'
+        items:
+          type: object
+      files:
+        type: array
+        title: Files
+        $ref: '#/definitions/File'
+        items:
+          type: object
       upload_date:
         type: number
         title: datetime
@@ -314,16 +323,13 @@ class VerificationStepResult(NamedTuple):
 
 class VerificationResponseView(NamedTuple):
     """
-    A Verification Response View to be returned by the API
+     A Verification Response View to be returned by the API
     ---
     type: object
     title: VerificationResponse
     required:
     - verification
     properties:
-      file:
-        description: 'The view of the verified file'
-        $ref: '#/definitions/File'
       verification:
         type: array
         items:
@@ -331,7 +337,6 @@ class VerificationResponseView(NamedTuple):
           description: 'The combined result of all verification steps'
           $ref: '#/definitions/VerificationStep'
     """
-    file: Optional[FileView]
     verification: List[VerificationStepResult]
 
 
@@ -402,6 +407,7 @@ class JobStatus(Enum):
     unconfirmed = 2
     pending = 3
     finished = 4
+    scheduled = 5
 
 
 class JobView(NamedTuple):
@@ -414,7 +420,7 @@ class JobView(NamedTuple):
     - chain
     - tags
     - status
-    - start_date
+    - created_date
     properties:
       uid:
         type: string
@@ -459,13 +465,26 @@ class JobView(NamedTuple):
         title: datetime
         example: '2020-02-11T15:34:05.814743+00:00'
         description: 'The date of failure, if the issuing failed'
+      created_date:
+        type: number
+        title: datetime
+        example: '2020-02-11T15:34:05.814743+00:00'
+        description: 'The date on which the job was created'
+      scheduled_date:
+        type: number
+        title: datetime
+        example: '2020-02-11T15:34:05.814743+00:00'
+        description: 'The date on which the job is scheduled to be issued'
 
     """
     uid: UUID
+    partner: PartnerView
     chain: str
     tags: List[str]
     status: JobStatus
-    start_date: datetime
+    created_date: datetime
+    scheduled_date: Optional[datetime] = None
+    start_date: Optional[datetime] = None
     issued_date: Optional[datetime] = None
     finished_date: Optional[datetime] = None
     failed_date: Optional[datetime] = None
