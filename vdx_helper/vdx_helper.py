@@ -51,9 +51,6 @@ class VDXHelper:
         self.core_api_key: str = core_api_key
         self.core_api_client_id: str = core_api_client_id
 
-    def _compute_core_file_id(self, file_hash: str) -> str:
-        return f"{self.core_api_client_id}_{file_hash}"
-
     def _get_token_string(self) -> str:
 
         if self.auth_token is None or time.time() > self.token_expiration_date:

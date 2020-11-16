@@ -276,9 +276,8 @@ class VdxHelperTest(unittest.TestCase):
         self.assertDictEqual(credential, credential_json)
 
     @patch('vdx_helper.vdx_helper.requests')
-    @patch('vdx_helper.vdx_helper.VDXHelper._compute_core_file_id')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
-    def test_create_credential(self, header, _compute_core_file_id, requests):
+    def test_create_credential(self, header, requests):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.post.return_value = response
@@ -290,7 +289,6 @@ class VdxHelperTest(unittest.TestCase):
         core_ids = ['939a9ccb-ddf9-424c-94eb-91898455a968']
         cred_ids = []
         expiry_date = "2021-01-01T15:34:05.814607+00:00"
-        _compute_core_file_id.return_value = 'core_id'
 
         # OK case
         response.status_code = HTTPStatus.OK
