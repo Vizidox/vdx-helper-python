@@ -146,6 +146,22 @@ class VDXHelper:
 
         return file_summary
 
+    def get_file_attributes(self, core_id: str, mapper: Callable[[Json], T] = file_mapper) -> T:
+
+        response = requests.get(
+            f"{self.url}/files/{core_id}/attributes",
+            headers=self.header
+        )
+
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        file = mapper(response.json())
+
+        return file
+
     def update_file_attributes(self, core_id: str, filename: str) -> None:
 
         payload = {
@@ -190,6 +206,22 @@ class VDXHelper:
         files = mapper(response.json())
 
         return files
+
+    def download_file(self, file_id: str) -> io.BytesIO:
+
+        response = requests.get(
+            f"{self.url}/files/{file_id}",
+            headers=self.header
+        )
+
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        file = io.BytesIO(response.content)
+
+        return file
 
     ################## CREDENTIALS #####################
     def download_credential_file(self, doc_uid: UUID) -> io.BytesIO:
@@ -289,6 +321,40 @@ class VDXHelper:
             f"{self.url}/credentials",
             headers=self.header,
             json=payload
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return
+
+    def replace_credential_tags(self, replace_credential_tags: Iterable[Dict[str, List[str]]]) -> None:
+
+        payload = {
+            "credentials": replace_credential_tags,
+        }
+        response = requests.put(
+            f"{self.url}/credentials",
+            headers=self.header,
+            json=payload
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return
+
+    def delete_credential_tags(self, cred_uid: UUID, tag: str) -> None:
+
+        params = nndict(
+            tag=tag
+        )
+        response = requests.patch(
+            f"{self.url}/credentials/{cred_uid}/delete_tag",
+            headers=self.header,
+            params=params
         )
 
         status = HTTPStatus(response.status_code)
@@ -409,6 +475,23 @@ class VDXHelper:
             "jobs": updated_job_tags,
         }
         response = requests.patch(
+            f"{self.url}/jobs",
+            headers=self.header,
+            json=payload
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return None
+
+    def replace_job_tags(self, replace_job_tags: List[dict]) -> None:
+
+        payload: Json = {
+            "jobs": replace_job_tags,
+        }
+        response = requests.put(
             f"{self.url}/jobs",
             headers=self.header,
             json=payload

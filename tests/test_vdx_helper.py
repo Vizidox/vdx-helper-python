@@ -730,6 +730,35 @@ class VdxHelperTest(unittest.TestCase):
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_get_file_attributes(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.get.return_value = response
+        response.json.return_value = file_json
+        file_id = "hello_this_is_file_id"
+        # OK status
+        response.status_code = HTTPStatus.OK
+        file_attributes = vdx_helper.get_file_attributes(core_id=file_id)
+        self.assertEqual(mapped_file, file_attributes)
+        self.assertEqual(f"{self.url}/files/{file_id}/attributes", requests.get.call_args[0][0])
+
+        # not OK status
+        file_attributes = None
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            file_attributes = vdx_helper.get_file_attributes(core_id=file_id)
+        except VDXError:
+            self.assertIsNone(file_attributes)
+            self.assertEqual(f"{self.url}/files/{file_id}/attributes", requests.get.call_args[0][0])
+
+        # with custom mapper
+        response.status_code = HTTPStatus.OK
+        file_attributes = vdx_helper.get_file_attributes(core_id=file_id, mapper=get_json_mapper())
+        self.assertEqual(f"{self.url}/files/{file_id}/attributes", requests.get.call_args[0][0])
+        self.assertDictEqual(file_attributes, file_json)
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
     def test_update_job_tags(self, header, requests):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
@@ -747,6 +776,26 @@ class VdxHelperTest(unittest.TestCase):
             vdx_helper.update_job_tags(updated_job_tags=updated_job_tags)
         except VDXError:
             self.assertEqual(f"{self.url}/jobs", requests.patch.call_args[0][0])
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_replace_job_tags(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.put.return_value = response
+        replace_job_tags = [{"tag": "tag"}]
+
+        # OK case
+        response.status_code = HTTPStatus.OK
+        vdx_helper.replace_job_tags(replace_job_tags=replace_job_tags)
+        self.assertEqual(f"{self.url}/jobs", requests.put.call_args[0][0])
+
+        # not OK case
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            vdx_helper.replace_job_tags(replace_job_tags=replace_job_tags)
+        except VDXError:
+            self.assertEqual(f"{self.url}/jobs", requests.put.call_args[0][0])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -776,3 +825,78 @@ class VdxHelperTest(unittest.TestCase):
             vdx_helper.update_credential_tags(updated_credential_tags=updated_credential_tags)
         except VDXError:
             self.assertEqual(f"{self.url}/credentials", requests.patch.call_args[0][0])
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_replace_credential_tags(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.put.return_value = response
+        replace_credential_tags = [
+            {
+                "credential_uid": UUID("123e4567-e89b-12d3-a456-426655440000"),
+                "tags": [
+                    "tagA",
+                    "tagB",
+                    "tagC"
+                ]
+            }
+        ]
+
+        # OK case
+        response.status_code = HTTPStatus.OK
+        vdx_helper.replace_credential_tags(replace_credential_tags=replace_credential_tags)
+        self.assertEqual(f"{self.url}/credentials", requests.put.call_args[0][0])
+
+        # not OK case
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            vdx_helper.replace_credential_tags(replace_credential_tags=replace_credential_tags)
+        except VDXError:
+            self.assertEqual(f"{self.url}/credentials", requests.put.call_args[0][0])
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_delete_credential_tag(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.patch.return_value = response
+        credential_tag = "tagA"
+        cred_uid = UUID("d39fca4b-5f7a-4e7d-8c1e-665988de808e")
+
+        # OK case
+        response.status_code = HTTPStatus.OK
+        vdx_helper.delete_credential_tags(cred_uid=cred_uid, tag=credential_tag)
+        self.assertEqual(f"{self.url}/credentials/{cred_uid}/delete_tag", requests.patch.call_args[0][0])
+
+        # not OK case
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            vdx_helper.delete_credential_tags(cred_uid=cred_uid, tag=credential_tag)
+        except VDXError:
+            self.assertEqual(f"{self.url}/credentials/{cred_uid}/delete_tag", requests.patch.call_args[0][0])
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.io')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_download_file(self, header, io, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.get.return_value = response
+        io.BytesIO.return_value = "file"
+        file_id = "hello_is_file_id"
+
+        # OK case
+        response.status_code = HTTPStatus.OK
+        file = vdx_helper.download_file(file_id=file_id)
+        self.assertEqual("file", file)
+        self.assertEqual(f"{self.url}/files/{file_id}", requests.get.call_args[0][0])
+
+        # not OK case
+        file = None
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            file = vdx_helper.download_file(file_id=file_id)
+        except VDXError:
+            self.assertIsNone(file)
+            self.assertEqual(f"{self.url}/files/{file_id}", requests.get.call_args[0][0])
