@@ -322,6 +322,24 @@ class VDXHelper:
 
         return job
 
+    def verify_by_credential_uid(self, cred_uid: UUID, mapper: Callable[[Json], T] = verification_mapper,
+                                 **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        params = {**nndict(pagination)}
+        response = requests.get(
+            f"{self.url}/verify/credential/{cred_uid}",
+            headers=self.header,
+            params=params
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        verification_response = mapper(response.json())
+
+        return verification_response
+
     ################## JOBS #####################
     def issue_job(self, engine: str, mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 

@@ -175,20 +175,21 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         filename = 'new_name'
+        core_id = "core_id"
 
         # response
         response.status_code = HTTPStatus.OK
         requests.put.return_value = response
 
-        vdx_helper.update_file_attributes(core_id="core_id", filename=filename)
-        self.assertEqual(f"{self.url}/files/core_id/attributes", requests.put.call_args[0][0])
+        vdx_helper.update_file_attributes(core_id=core_id, filename=filename)
+        self.assertEqual(f"{self.url}/files/{core_id}/attributes", requests.put.call_args[0][0])
 
         # invalid ID
         response.status_code = HTTPStatus.NOT_FOUND
         try:
-            vdx_helper.update_file_attributes(core_id="invalid", filename=filename)
+            vdx_helper.update_file_attributes(core_id=core_id, filename=filename)
         except VDXError:
-            self.assertEqual(f"{self.url}/files/invalid/attributes", requests.put.call_args[0][0])
+            self.assertEqual(f"{self.url}/files/{core_id}/attributes", requests.put.call_args[0][0])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.io')
@@ -503,6 +504,37 @@ class VdxHelperTest(unittest.TestCase):
         verification_response = vdx_helper.verify_by_file(filename=filename, file_stream=file_stream,
                                                           file_content_type=file_content_type, mapper=get_json_mapper())
         self.assertEqual(f"{self.url}/verify/upload/file", requests.post.call_args[0][0])
+        self.assertDictEqual(verification_response, verification_response_json)
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_verify_by_credential_uid(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.get.return_value = response
+        response.json.return_value = verification_response_json
+
+        cred_uid = UUID('189e4e5c-833d-430b-9baa-5230841d997f')
+
+        # OK status
+        response.status_code = HTTPStatus.OK
+        verification_response = vdx_helper.verify_by_credential_uid(cred_uid=cred_uid)
+        self.assertEqual(mapped_verification, verification_response)
+        self.assertEqual(f"{self.url}/verify/credential/{cred_uid}", requests.get.call_args[0][0])
+
+        # not OK status
+        verification_response = None
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            verification_response = vdx_helper.verify_by_credential_uid(cred_uid=cred_uid)
+        except VDXError:
+            self.assertIsNone(verification_response)
+            self.assertEqual(f"{self.url}/verify/credential/{cred_uid}", requests.get.call_args[0][0])
+
+        # with custom mapper
+        response.status_code = HTTPStatus.OK
+        verification_response = vdx_helper.verify_by_credential_uid(cred_uid=cred_uid, mapper=get_json_mapper())
+        self.assertEqual(f"{self.url}/verify/credential/{cred_uid}", requests.get.call_args[0][0])
         self.assertDictEqual(verification_response, verification_response_json)
 
     @patch('vdx_helper.vdx_helper.requests')
