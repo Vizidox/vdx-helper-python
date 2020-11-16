@@ -8,7 +8,7 @@ from uuid import UUID
 from tests.json_responses import file_json, mapped_file, mapped_engine_permissions, engine_json, credential_json, \
     mapped_credential, paginated_credential, mapped_paginated_credential, job_json, mapped_job, paginated_job, \
     mapped_paginated_job, verification_response_json, mapped_verification, mapped_paginated_certificate, \
-    paginated_certificate
+    paginated_certificate, paginated_file, mapped_paginated_file
 from vdx_helper.vdx_helper import VDXHelper, VDXError, get_json_mapper
 
 Json = Dict[str, Any]
@@ -638,3 +638,111 @@ class VdxHelperTest(unittest.TestCase):
         credentials = vdx_helper.get_job_credentials(job_uid=job_uid, mapper=get_json_mapper())
         self.assertEqual(f"{self.url}/jobs/{job_uid}/credentials", requests.get.call_args[0][0])
         self.assertDictEqual(credentials, paginated_credential)
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_schedule_credentials(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.post.return_value = response
+        response.json.return_value = job_json
+        engine = 'dogecoin'
+        credentials = [UUID("939a9ccb-ddf9-424c-94eb-91898455a968"), UUID("39c7ddcd-f480-48e5-8056-fabf84e7f859")]
+        # OK status
+        response.status_code = HTTPStatus.OK
+        job = vdx_helper.schedule_credentials(engine=engine, credentials=credentials)
+        self.assertEqual(mapped_job, job)
+        self.assertEqual(f"{self.url}/credentials/schedule", requests.post.call_args[0][0])
+
+        # not OK status
+        job = None
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            job = vdx_helper.schedule_credentials(engine=engine, credentials=credentials)
+        except VDXError:
+            self.assertIsNone(job)
+            self.assertEqual(f"{self.url}/credentials/schedule", requests.post.call_args[0][0])
+
+        # with custom mapper
+        response.status_code = HTTPStatus.OK
+        job = vdx_helper.schedule_credentials(engine=engine, credentials=credentials, mapper=get_json_mapper())
+        self.assertEqual(f"{self.url}/credentials/schedule", requests.post.call_args[0][0])
+        self.assertDictEqual(job, job_json)
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_get_files(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.get.return_value = response
+        response.json.return_value = paginated_file
+
+        # OK status
+        response.status_code = HTTPStatus.OK
+        files = vdx_helper.get_files()
+        self.assertEqual(files, mapped_paginated_file)
+        self.assertEqual(f"{self.url}/files", requests.get.call_args[0][0])
+
+        # not OK status
+        files = None
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            files = vdx_helper.get_files()
+        except VDXError:
+            self.assertIsNone(files)
+            self.assertEqual(f"{self.url}/files", requests.get.call_args[0][0])
+
+        # with custom mapper
+        response.status_code = HTTPStatus.OK
+        files = vdx_helper.get_files(mapper=get_json_mapper())
+        self.assertEqual(f"{self.url}/files", requests.get.call_args[0][0])
+        self.assertDictEqual(files, paginated_file)
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_update_job_tags(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.patch.return_value = response
+        updated_job_tags = [{"tag": "tag"}]
+
+        # OK case
+        response.status_code = HTTPStatus.OK
+        vdx_helper.update_job_tags(updated_job_tags=updated_job_tags)
+        self.assertEqual(f"{self.url}/jobs", requests.patch.call_args[0][0])
+
+        # not OK case
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            vdx_helper.update_job_tags(updated_job_tags=updated_job_tags)
+        except VDXError:
+            self.assertEqual(f"{self.url}/jobs", requests.patch.call_args[0][0])
+
+    @patch('vdx_helper.vdx_helper.requests')
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    def test_update_credential_tags(self, header, requests):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        requests.patch.return_value = response
+        updated_credential_tags = [
+            {
+                "credential_uid": UUID("123e4567-e89b-12d3-a456-426655440000"),
+                "tags": [
+                    "tagA",
+                    "tagB",
+                    "tagC"
+                ]
+            }
+        ]
+
+        # OK case
+        response.status_code = HTTPStatus.OK
+        vdx_helper.update_credential_tags(updated_credential_tags=updated_credential_tags)
+        self.assertEqual(f"{self.url}/credentials", requests.patch.call_args[0][0])
+
+        # not OK case
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            vdx_helper.update_credential_tags(updated_credential_tags=updated_credential_tags)
+        except VDXError:
+            self.assertEqual(f"{self.url}/credentials", requests.patch.call_args[0][0])
