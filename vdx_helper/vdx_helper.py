@@ -545,16 +545,19 @@ class VDXHelper:
 
     def verify_by_file(self, filename: str,
                        file_stream: IOBase,
-                       file_content_type: str, mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+                       file_content_type: str, mapper: Callable[[Json], T] = verification_mapper,
+                       **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload = {
-            "file": (filename, file_stream,  file_content_type)
+            "file": (filename, file_stream, file_content_type)
         }
+        params = {**nndict(pagination)}
 
         response = requests.post(
             f"{self.url}/verify/upload/file",
             headers=self.header,
-            files=payload
+            files=payload,
+            params=params
         )
 
         status = HTTPStatus(response.status_code)
