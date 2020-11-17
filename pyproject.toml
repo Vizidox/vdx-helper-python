@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "vdx-helper"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 authors = ["Joana Teixeira <joana.teixeira@vizidox.com>", "Tiago Santos <tiago.santos@vizidox.com>",
 "Hieu Le <hieu.le@morphotech.co.uk>", "Rita Mariquitos <rita.mariquitos@morphotech.co.uk>"]
 
 [tool.poetry.dependencies]
 python = "3.7.7"
-requests="2.24.0"
+requests="2.22"
 nndict="1.0.0"
 
 [tool.poetry.dev-dependencies]
