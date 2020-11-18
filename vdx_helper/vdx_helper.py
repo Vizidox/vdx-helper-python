@@ -291,17 +291,17 @@ class VDXHelper:
                           cred_ids: List[UUID], expiry_date: Optional[str], mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
         payload = nndict(
             title=title,
-            metadata=dict(metadata),
             files=core_ids,
             credentials=cred_ids,
             tags=list(set(tags)),
             expiry_date=expiry_date
         )
+        payload_json = {**payload, "metadata": dict(metadata)}
 
         response = requests.post(
             f"{self.url}/credentials",
             headers=self.header,
-            json=payload
+            json=payload_json
         )
 
         status = HTTPStatus(response.status_code)
