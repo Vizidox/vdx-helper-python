@@ -8,7 +8,7 @@ from uuid import UUID
 from tests.json_responses import file_json, mapped_file, mapped_engine_permissions, engine_json, credential_json, \
     mapped_credential, paginated_credential, mapped_paginated_credential, job_json, mapped_job, paginated_job, \
     mapped_paginated_job, verification_response_json, mapped_verification, mapped_paginated_certificate, \
-    paginated_certificate, paginated_file, mapped_paginated_file
+    paginated_certificate, paginated_file, mapped_paginated_file, engine_cost_json, mapped_engine_cost
 from vdx_helper.vdx_helper import VDXHelper, VDXError, get_json_mapper
 
 Json = Dict[str, Any]
@@ -85,7 +85,7 @@ class VdxHelperTest(unittest.TestCase):
         self.assertRaises(VDXError, vdx_helper._get_token_string)
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
-    def testheader(self, _get_token_string):
+    def test_header(self, _get_token_string):
         _get_token_string.return_value = "vizidox-authorization"
         vdx_helper = self.get_vdx_helper()
         expected_header = {
@@ -127,6 +127,31 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         permissions = vdx_helper.get_partner_permissions(mapper=get_json_mapper())
         self.assertListEqual(permissions, engine_json)
+
+    @patch('vdx_helper.vdx_helper.VDXHelper.header')
+    @patch('vdx_helper.vdx_helper.requests')
+    def test_get_engine_cost(self, requests, header):
+        vdx_helper = self.get_vdx_helper()
+        response = MagicMock()
+        response.json.return_value = engine_cost_json
+        requests.get.return_value = response
+        # OK status
+        response.status_code = HTTPStatus.OK
+        engine_cost = vdx_helper.get_engine_cost(engine_name='bitcoin', n=10)
+        self.assertEqual(engine_cost, mapped_engine_cost)
+
+        # not OK status
+        engine_cost = None
+        response.status_code = HTTPStatus.CONFLICT
+        try:
+            engine_cost = vdx_helper.get_engine_cost(engine_name='bitcoin', n=10)
+        except VDXError:
+            self.assertIsNone(engine_cost)
+
+        # json mapper
+        response.status_code = HTTPStatus.OK
+        engine_cost = vdx_helper.get_engine_cost(engine_name='bitcoin', n=10, mapper=get_json_mapper())
+        self.assertEqual(engine_cost, engine_cost_json)
 
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')

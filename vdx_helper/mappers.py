@@ -6,7 +6,7 @@ from uuid import UUID
 from vdx_helper.typing import Json
 from vdx_helper.models import EnginePermissionsView, FileView, PaginatedView, CredentialView, JobView, JobStatus, \
     VerificationResponseView, VerificationStepResult, StepStatus, CertificateView, ClaimView, PartnerView, \
-    VerificationReport, VerificationStatus
+    VerificationReport, VerificationStatus, CurrencyAmountView
 
 T = TypeVar('T')
 
@@ -35,6 +35,13 @@ def permissions_mapper(json: Json) -> List[EnginePermissionsView]:
         )
         permission_views.append(permission)
     return permission_views
+
+
+def currency_mapper(json: Json) -> CurrencyAmountView:
+    return CurrencyAmountView(
+        amount=json["amount"],
+        currency=json["currency"]
+    )
 
 
 def file_mapper(json: Json) -> FileView:

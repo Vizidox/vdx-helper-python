@@ -3,7 +3,7 @@ from uuid import UUID
 
 from vdx_helper.models import FileView, EnginePermissionsView, CredentialView, PaginatedView, JobView, PartnerView, \
     JobStatus, VerificationResponseView, VerificationStepResult, StepStatus, CertificateView, ClaimView, \
-    VerificationReport, VerificationStatus
+    VerificationReport, VerificationStatus, CurrencyAmountView
 
 engine_json = [
     {
@@ -17,6 +17,10 @@ engine_json = [
         "show_prices": "false"
     }
 ]
+
+engine_cost_json = {"amount": 10.467, "currency": 'bitcoin'}
+
+mapped_engine_cost = CurrencyAmountView(amount=10.467, currency="bitcoin")
 
 mapped_engine_permissions = [EnginePermissionsView(name="bitcoin", is_allowed=True, show_prices=True),
                              EnginePermissionsView(name="dogecoin", is_allowed=False, show_prices=False)]

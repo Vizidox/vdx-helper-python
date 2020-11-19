@@ -10,7 +10,7 @@ import requests
 from nndict import nndict
 
 from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper, \
-    verification_mapper, certificate_mapper
+    verification_mapper, certificate_mapper, currency_mapper
 from vdx_helper.typing import Json
 
 T = TypeVar('T')
@@ -113,6 +113,23 @@ class VDXHelper:
         permissions = mapper(response.json())
 
         return permissions
+
+    def get_engine_cost(self, engine_name: str, n: int,
+                        mapper: Optional[Callable[[Json], T]] = currency_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        response = requests.get(
+            f"{self.url}/engines/{engine_name}/cost/{n}",
+            headers=self.header
+        )
+
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        currency_cost = mapper(response.json())
+
+        return currency_cost
 
     ################## FILES #####################
     def upload_file(self,
