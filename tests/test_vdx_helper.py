@@ -866,13 +866,13 @@ class VdxHelperTest(unittest.TestCase):
 
         # OK case
         response.status_code = HTTPStatus.OK
-        vdx_helper.delete_credential_tags(cred_uid=cred_uid, tag=credential_tag)
+        vdx_helper.delete_credential_tag(cred_uid=cred_uid, tag=credential_tag)
         self.assertEqual(f"{self.url}/credentials/{cred_uid}/delete_tag", requests.patch.call_args[0][0])
 
         # not OK case
         response.status_code = HTTPStatus.CONFLICT
         try:
-            vdx_helper.delete_credential_tags(cred_uid=cred_uid, tag=credential_tag)
+            vdx_helper.delete_credential_tag(cred_uid=cred_uid, tag=credential_tag)
         except VDXError:
             self.assertEqual(f"{self.url}/credentials/{cred_uid}/delete_tag", requests.patch.call_args[0][0])
 

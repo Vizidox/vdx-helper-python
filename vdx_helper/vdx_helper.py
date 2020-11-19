@@ -346,7 +346,7 @@ class VDXHelper:
 
         return
 
-    def delete_credential_tags(self, cred_uid: UUID, tag: str) -> None:
+    def delete_credential_tag(self, cred_uid: UUID, tag: str) -> None:
 
         params = nndict(
             tag=tag
