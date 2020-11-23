@@ -19,7 +19,7 @@ pipeline {
             steps{
                 script{
                     if(!params.get('skipTests', false)) {
-                        sh "docker run -v ${WORKSPACE}/coverage:/coverage ${docker_image_tag} pytest tests --junitxml=/coverage/pytest-report.xml --cov-report=xml:/coverage/coverage.xml --cov=${sonar_analyzed_dir}"
+                        sh "docker run -v ${WORKSPACE}/coverage:/coverage ${docker_image_tag} pytest --junitxml=/coverage/pytest-report.xml --cov-report=xml:/coverage/coverage.xml --cov=${sonar_analyzed_dir}"
                     }
                 }
             }
