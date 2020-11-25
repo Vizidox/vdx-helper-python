@@ -1,10 +1,20 @@
-version: "3"
+version: "3.3"
 services:
-    vdx-helper:
-        build: .
-        command: ["tail", "-f", "/dev/null"]
-        volumes:
-            - ./:/home/app
-        container_name: vdx-helper
-        env_file: 
-            - .env.local
+  prism:
+    image: stoplight/prism:3.1.1
+    command: mock -p 4020 -h 0.0.0.0 -d /tmp/swagger.json
+    volumes:
+      - ./tests/prism:/tmp
+    restart: unless-stopped
+    ports:
+      - 4030:4020
+    networks:
+      vdx-helper-prism-network:
+
+  vdx-helper:
+    build: .
+    networks:
+      vdx-helper-prism-network:
+
+networks:
+  vdx-helper-prism-network:
