@@ -1,0 +1,9 @@
+version: "3.3"
+services:
+  vdx-helper:
+    image: stoplight/prism:3.1.1
+    command: mock -h 0.0.0.0 -d /tmp/swagger.json
+    volumes:
+      - ../swagger:/tmp
+    ports:
+      - 4020:4020
