@@ -17,7 +17,7 @@ Json = Dict[str, Any]
 class VdxHelperTest(unittest.TestCase):
     def setUp(self):
         self.url = "vizidox.com"
-        self.keycloak_url = "vizidox-keycloak.com"
+        self.keycloak_url = "http://vizidox-keycloak.com"
         self.core_api_key = 'core_api_key'
         self.core_api_client_id = 'core_api_client_id'
         self.default_current_time = 300
