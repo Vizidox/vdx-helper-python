@@ -216,31 +216,6 @@ class VdxHelperTest(unittest.TestCase):
         except VDXError:
             self.assertEqual(f"{self.url}/files/{core_id}/attributes", requests.put.call_args[0][0])
 
-    @patch('vdx_helper.vdx_helper.requests')
-    @patch('vdx_helper.vdx_helper.io')
-    @patch('vdx_helper.vdx_helper.VDXHelper.header')
-    def test_download_credential_file(self, header, io, requests):
-        vdx_helper = self.get_vdx_helper()
-        response = MagicMock()
-        requests.get.return_value = response
-        io.BytesIO.return_value = "document_file"
-        cred_uid = "189e4e5c-833d-430b-9baa-5230841d997f"
-
-        # OK case
-        response.status_code = HTTPStatus.OK
-        document_file = vdx_helper.download_credential_file(UUID(cred_uid))
-        self.assertEqual("document_file", document_file)
-        self.assertEqual(f"{self.url}/credentials/{cred_uid}/file", requests.get.call_args[0][0])
-
-        # not OK case
-        document_file = None
-        response.status_code = HTTPStatus.CONFLICT
-        try:
-            document_file = vdx_helper.download_credential_file(UUID(cred_uid))
-        except VDXError:
-            self.assertIsNone(document_file)
-            self.assertEqual(f"{self.url}/credentials/{cred_uid}/file", requests.get.call_args[0][0])
-
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
     def test_get_credentials(self, requests, header):
