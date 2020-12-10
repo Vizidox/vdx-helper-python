@@ -224,22 +224,6 @@ class VDXHelper:
 
         return files
 
-    def download_file(self, file_id: str) -> io.BytesIO:
-
-        response = requests.get(
-            f"{self.url}/files/{file_id}",
-            headers=self.header
-        )
-
-        status = HTTPStatus(response.status_code)
-
-        if status is not HTTPStatus.OK:
-            raise error_from_response(status, response)
-
-        file = io.BytesIO(response.content)
-
-        return file
-
     ################## CREDENTIALS #####################
     def download_credential_file(self, doc_uid: UUID) -> io.BytesIO:
 
