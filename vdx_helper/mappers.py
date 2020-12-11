@@ -7,6 +7,7 @@ from vdx_helper.typing import Json
 from vdx_helper.models import EnginePermissionsView, FileView, PaginatedView, CredentialView, JobView, JobStatus, \
     VerificationResponseView, VerificationStepResult, StepStatus, CertificateView, ClaimView, PartnerView, \
     VerificationReport, VerificationStatus, CurrencyAmountView
+from vdx_helper.util import optional_datetime_to_string
 
 T = TypeVar('T')
 
@@ -74,12 +75,12 @@ def job_mapper(json: Json) -> JobView:
         chain=json["chain"],
         tags=json["tags"],
         status=JobStatus(int(json["status"])),
-        created_date=datetime.fromisoformat(json["created_date"]),
-        start_date=datetime.fromisoformat(json["start_date"]) if "start_date" in json else None,
-        issued_date=datetime.fromisoformat(json["issued_date"]) if "issued_date" in json else None,
-        finished_date=datetime.fromisoformat(json["finished_date"]) if "finished_date" in json else None,
-        failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None,
-        scheduled_date=datetime.fromisoformat(json["scheduled_date"]) if "scheduled_date" in json else None
+        created_date=optional_datetime_to_string(json.get("created_date")),
+        start_date=optional_datetime_to_string(json.get("start_date")),
+        issued_date=optional_datetime_to_string(json.get("issued_date")),
+        finished_date=optional_datetime_to_string(json.get("finished_date")),
+        failed_date=optional_datetime_to_string(json.get("failed_date")),
+        scheduled_date=optional_datetime_to_string(json.get("scheduled_date"))
     )
 
 
