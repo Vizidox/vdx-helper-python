@@ -2221,7 +2221,34 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/Paginated"
+              "type": "object",
+              "title": "Paginated",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_pages": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "title": "Certificate",
+                    "$ref": "#/definitions/Certificate"
+                  }
+                }
+              }
             }
           },
           "404": {
@@ -2341,7 +2368,34 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/Paginated"
+              "type": "object",
+              "title": "Paginated",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_pages": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "title": "Credential",
+                    "$ref": "#/definitions/Credential"
+                  }
+                }
+              }
             }
           },
           "404": {
@@ -2572,10 +2626,7 @@
         "summary": "Download file",
         "responses": {
           "200": {
-            "description": "OK",
-            "schema": {
-              "type": "file"
-            }
+            "description": "OK"
           },
           "404": {
             "description": "missing_file",
@@ -2603,15 +2654,16 @@
             "in": "path",
             "type": "string",
             "required": true,
-            "description": "file id",
-            "example": "file_id_5998f4893dd69f99d04ec4a7741c7"
+            "description": "file id"
           }
         ],
         "tags": [
           "file"
         ],
         "produces": [
-          "application/octet-stream"
+          "application/pdf",
+          "image/png",
+          "image/jpeg"
         ],
         "security": [
           {

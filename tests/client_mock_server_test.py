@@ -9,8 +9,10 @@ from testcontainers.compose import DockerCompose
 from os import path
 
 from vdx_helper import VDXHelper
-from vdx_helper.mappers import credential_mapper, file_mapper, get_paginated_mapper, partner_mapper
-from vdx_helper.models import EnginePermissionsView, CredentialView, JobView, JobStatus
+from vdx_helper.mappers import credential_mapper, file_mapper, get_paginated_mapper, partner_mapper, claim_mapper, \
+    verification_report_mapper
+from vdx_helper.models import EnginePermissionsView, CredentialView, JobView, JobStatus, VerificationResponseView, \
+    VerificationStepResult, StepStatus, CertificateView, ClaimView, VerificationReport, VerificationStatus
 from vdx_helper.typing import Json
 
 
@@ -63,6 +65,44 @@ def custom_job_mapper(json: Json) -> JobView:
         finished_date=datetime.fromisoformat(json["finished_date"]) if "finished_date" in json else None,
         failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None,
         scheduled_date=datetime.fromisoformat(json["scheduled_date"]) if "scheduled_date" in json else None
+    )
+
+
+def custom_verification_mapper(json: Json) -> VerificationResponseView:
+    return VerificationResponseView(
+        verification=[custom_verification_step_mapper(step) for step in json["verification"]]
+    )
+
+
+def custom_verification_step_mapper(json: Json) -> VerificationStepResult:
+    return VerificationStepResult(
+        name=json["name"],
+        description=json["description"],
+        status=StepStatus[json["status"]]
+    )
+
+
+def custom_certificate_mapper(json: Json) -> CertificateView:
+    return CertificateView(
+        certificate=custom_claim_mapper(json["certificate"]),
+        last_verification=custom_verification_report_mapper(json["last_verification"]) if "last_verification" in json else None
+    )
+
+
+def custom_claim_mapper(json: Json) -> ClaimView:
+    return ClaimView(
+        uid=UUID(json["uid"]),
+        partner=partner_mapper(json["partner"]),
+        credential=custom_credential_mapper(json["credential"]),
+        issued_date=datetime.fromisoformat(json["issued_date"]),
+        signature=json["signature"]
+    )
+
+
+def custom_verification_report_mapper(json: Json) -> VerificationReport:
+    return VerificationReport(
+        status=VerificationStatus[json["status"]],
+        timestamp=datetime.fromisoformat(json["timestamp"])
     )
 
 
@@ -195,3 +235,159 @@ class ClientMockServerTest(TestCase):
         vdx_helper = self.get_vdx_helper()
         jobs = vdx_helper.get_jobs(mapper=get_paginated_mapper(custom_job_mapper))
         assert jobs is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_verify_by_file(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+
+        filename = "file_name"
+        file_content_type = "text/plain"
+        memory_file = io.BytesIO()
+        # todo fix this
+        verification_response = vdx_helper.verify_by_file(filename=filename, file_stream=memory_file,
+                                                          file_content_type=file_content_type,
+                                                          mapper=custom_verification_mapper)
+        assert verification_response is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_verify_by_credential_uid(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+
+        cred_id = UUID('123e4567-e89b-12d3-a456-426655440000')
+        # todo fix this
+        verification_response = vdx_helper.verify_by_credential_uid(cred_uid=cred_id, mapper=custom_verification_mapper)
+        assert verification_response is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_verify_by_certificate_uid(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        cert_uid = UUID('123e4567-e89b-12d3-a456-426655440000')
+        # todo fix this
+        verification_response = vdx_helper.verify_by_uid(cert_uid=cert_uid, mapper=custom_verification_mapper)
+        assert verification_response is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_get_certificates(self, _get_token_string):
+        _get_token_string.return_value = "vizidox-authorization"
+        vdx_helper = self.get_vdx_helper()
+
+        certificates = vdx_helper.get_certificates(mapper=get_paginated_mapper(custom_certificate_mapper))
+        assert certificates is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_revoke_certificate(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        cert_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
+        vdx_helper.revoke_certificate(cert_uid=cert_uid)
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_download_certificate(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        cert_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
+
+        certificate = vdx_helper.download_certificate(cert_uid=cert_uid)
+        assert certificate is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_get_job_certificates(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        job_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
+        certificates = vdx_helper.get_job_certificates(job_uid=job_uid, pagination=None,
+                                                       mapper=get_paginated_mapper(custom_certificate_mapper))
+        assert certificates is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_get_job_credentials(self, _get_token_string):
+        _get_token_string.return_value = "vizidox-authorization"
+        vdx_helper = self.get_vdx_helper()
+        job_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
+
+        credentials = vdx_helper.get_job_credentials(job_uid=job_uid, mapper=get_paginated_mapper(custom_credential_mapper))
+        assert credentials is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_schedule_credentials(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        engine = 'dogecoin'
+        credentials = ["939a9ccb-ddf9-424c-94eb-91898455a968", "39c7ddcd-f480-48e5-8056-fabf84e7f859"]
+
+        job = vdx_helper.schedule_credentials(engine=engine, credentials=credentials, mapper=custom_job_mapper)
+        assert job is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_get_file_attributes(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        file_id = "hello_this_is_file_id"
+        file = vdx_helper.get_file_attributes(core_id=file_id)
+        assert file is not None
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_update_job_tags(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        updated_job_tags = [{"tag": "tag"}]
+        vdx_helper.update_job_tags(updated_job_tags=updated_job_tags)
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_replace_job_tags(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        replace_job_tags = [{"tag": "tag"}]
+        vdx_helper.replace_job_tags(replace_job_tags=replace_job_tags)
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_update_credential_tags(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        updated_credential_tags = [
+            {
+                "credential_uid": "123e4567-e89b-12d3-a456-426655440000",
+                "tags": [
+                    "tagA",
+                    "tagB",
+                    "tagC"
+                ]
+            }
+        ]
+        vdx_helper.update_credential_tags(updated_credential_tags=updated_credential_tags)
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_replace_credential_tags(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        replace_credential_tags = [
+            {
+                "credential_uid": "123e4567-e89b-12d3-a456-426655440000",
+                "tags": [
+                    "tagA",
+                    "tagB",
+                    "tagC"
+                ]
+            }
+        ]
+        vdx_helper.replace_credential_tags(replace_credential_tags=replace_credential_tags)
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_delete_credential_tag(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        credential_tag = "tagA"
+        cred_uid = UUID("d39fca4b-5f7a-4e7d-8c1e-665988de808e")
+
+        vdx_helper.delete_credential_tag(cred_uid=cred_uid, tag=credential_tag)
+
+    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
+    def test_download_file(self, _get_token_string):
+        vdx_helper = self.get_vdx_helper()
+        _get_token_string.return_value = "vizidox-authorization"
+        file_id = "hello_is_file_id"
+        file = vdx_helper.download_file(file_id=file_id)
+        assert file is not None
