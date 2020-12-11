@@ -117,7 +117,7 @@ def claim_mapper(json: Json) -> ClaimView:
 def certificate_mapper(json: Json) -> CertificateView:
     return CertificateView(
         certificate=claim_mapper(json["certificate"]),
-        last_verification=verification_report_mapper(json["last_verification"]) if "last_verification" in json else None
+        last_verification=verification_report_mapper(json.get("last_verification"))
     )
 
 
