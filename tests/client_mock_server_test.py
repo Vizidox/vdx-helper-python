@@ -383,11 +383,3 @@ class ClientMockServerTest(TestCase):
         cred_uid = UUID("d39fca4b-5f7a-4e7d-8c1e-665988de808e")
 
         vdx_helper.delete_credential_tag(cred_uid=cred_uid, tag=credential_tag)
-
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
-    def test_download_file(self, _get_token_string):
-        vdx_helper = self.get_vdx_helper()
-        _get_token_string.return_value = "vizidox-authorization"
-        file_id = "hello_is_file_id"
-        file = vdx_helper.download_file(file_id=file_id)
-        assert file is not None
