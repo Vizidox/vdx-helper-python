@@ -11,22 +11,23 @@ pipeline {
     stages {
         stage('Build docker') {
             steps {
-             sh "docker build . -t ${docker_image_tag}"
+             sh "docker-compose build"
             }
         }
-
         stage('Run Tests') {
             steps{
                 script{
                     if(!params.get('skipTests', false)) {
-                        sh "docker run -v ${WORKSPACE}/coverage:/coverage ${docker_image_tag} pytest tests --junitxml=/coverage/pytest-report.xml --cov-report=xml:/coverage/coverage.xml --cov=${sonar_analyzed_dir}"
+                        sh "docker-compose up -d"
+                        sh "sleep 3" // prism seems not to be fully up, so some seconds of sleep are needed
+                        sh "docker-compose run vdx-helper pytest tests"
                     }
                 }
             }
         }
-        stage('Push to Nexus and remove the container') {
+        stage('Push to Nexus') {
             steps {
-                sh "docker run ${docker_image_tag} /bin/bash -c \"poetry config repositories.morphotech ${nexus_url}; poetry config http-basic.morphotech ${env.nexus_account} ${env.nexus_password}; poetry build; poetry publish -r morphotech\""
+                sh "docker-compose run ${docker_image_tag} /bin/bash -c \"poetry config repositories.morphotech ${nexus_url}; poetry config http-basic.morphotech ${env.nexus_account} ${env.nexus_password}; poetry build; poetry publish -r morphotech\""
             }
         }
         stage('Sonarqube code inspection') {
@@ -39,6 +40,11 @@ pipeline {
                 -Dsonar.python.xunit.reportPath=coverage/pytest-report.xml\
                 -Dsonar.projectBaseDir=${sonar_analyzed_dir}"
             }
+        }
+    }
+    post {
+        cleanup{
+            sh "docker-compose down"
         }
     }
 }
