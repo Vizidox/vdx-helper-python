@@ -2,12 +2,12 @@ version: "3.3"
 services:
   prism:
     image: stoplight/prism:3.1.1
-    command: mock -p 4020 -h 0.0.0.0 -d /tmp/swagger.json
+    command: mock -p 4030 -h 0.0.0.0 -d /tmp/swagger.json
     volumes:
       - ./tests/prism:/tmp
     restart: unless-stopped
     ports:
-      - 4030:4020
+      - 4030:4030
     networks:
       vdx-helper-prism-network:
 
