@@ -1,6 +1,4 @@
-from datetime import datetime
 import io
-from typing import List
 from unittest.mock import patch
 from uuid import UUID
 
@@ -8,12 +6,10 @@ from unittest import TestCase
 from testcontainers.compose import DockerCompose
 from os import path
 
+from tests.custom_mappers_mock_tests import custom_permissions_mapper, custom_credential_mapper, custom_job_mapper, \
+    custom_verification_mapper, custom_certificate_mapper
 from vdx_helper import VDXHelper
-from vdx_helper.mappers import credential_mapper, file_mapper, get_paginated_mapper, partner_mapper, claim_mapper, \
-    verification_report_mapper
-from vdx_helper.models import EnginePermissionsView, CredentialView, JobView, JobStatus, VerificationResponseView, \
-    VerificationStepResult, StepStatus, CertificateView, ClaimView, VerificationReport, VerificationStatus
-from vdx_helper.typing import Json
+from vdx_helper.mappers import get_paginated_mapper
 
 
 def inside_docker() -> bool:
@@ -23,87 +19,6 @@ def inside_docker() -> bool:
     https://github.com/docker/docker/blob/a9fa38b1edf30b23cae3eade0be48b3d4b1de14b/daemon/initlayer/setup_unix.go#L25
     """
     return path.isfile('/.dockerenv')
-
-
-def custom_permissions_mapper(_json: Json) -> List[EnginePermissionsView]:
-    permission_views = list()
-    for json_permission in _json:
-        permission = EnginePermissionsView(
-            name=json_permission['name'],
-            is_allowed=json_permission['is_allowed'],
-            # for some reason prism generates "python valid booleans" so no need for conversion
-            show_prices=json_permission["show_prices"]
-        )
-        permission_views.append(permission)
-    return permission_views
-
-
-def custom_credential_mapper(json: Json) -> CredentialView:
-    return CredentialView(
-        uid=UUID(json["uid"]),
-        title=json["title"],
-        metadata=json["metadata"],
-        files=[file_mapper(file) for file in json["files"]],
-        credentials=[credential_mapper(credential) if 'credential' in json["credentials"] else [] for credential in
-                     json["credentials"]],
-        upload_date=datetime.fromisoformat(json["upload_date"]),
-        tags=json["tags"],
-        expiry_date=datetime.fromisoformat(json["expiry_date"])
-    )
-
-
-def custom_job_mapper(json: Json) -> JobView:
-    return JobView(
-        uid=UUID(json["uid"]),
-        partner=partner_mapper(json["partner"]),
-        chain=json["chain"],
-        tags=json["tags"],
-        status=JobStatus[json["status"]],
-        created_date=datetime.fromisoformat(json["created_date"]),
-        start_date=datetime.fromisoformat(json["start_date"]) if "start_date" in json else None,
-        issued_date=datetime.fromisoformat(json["issued_date"]) if "issued_date" in json else None,
-        finished_date=datetime.fromisoformat(json["finished_date"]) if "finished_date" in json else None,
-        failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None,
-        scheduled_date=datetime.fromisoformat(json["scheduled_date"]) if "scheduled_date" in json else None
-    )
-
-
-def custom_verification_mapper(json: Json) -> VerificationResponseView:
-    return VerificationResponseView(
-        verification=[custom_verification_step_mapper(step) for step in json["verification"]]
-    )
-
-
-def custom_verification_step_mapper(json: Json) -> VerificationStepResult:
-    return VerificationStepResult(
-        name=json["name"],
-        description=json["description"],
-        status=StepStatus[json["status"]]
-    )
-
-
-def custom_certificate_mapper(json: Json) -> CertificateView:
-    return CertificateView(
-        certificate=custom_claim_mapper(json["certificate"]),
-        last_verification=custom_verification_report_mapper(json["last_verification"]) if "last_verification" in json else None
-    )
-
-
-def custom_claim_mapper(json: Json) -> ClaimView:
-    return ClaimView(
-        uid=UUID(json["uid"]),
-        partner=partner_mapper(json["partner"]),
-        credential=custom_credential_mapper(json["credential"]),
-        issued_date=datetime.fromisoformat(json["issued_date"]),
-        signature=json["signature"]
-    )
-
-
-def custom_verification_report_mapper(json: Json) -> VerificationReport:
-    return VerificationReport(
-        status=VerificationStatus[json["status"]],
-        timestamp=datetime.fromisoformat(json["timestamp"])
-    )
 
 
 class ClientMockServerTest(TestCase):
@@ -118,7 +33,6 @@ class ClientMockServerTest(TestCase):
         self.core_api_key = 'core_api_key'
         self.core_api_client_id = 'core_api_client_id'
         self.default_current_time = 300
-        self.default_json_value = {'name': 'vizidox', 'value': 123}
 
     def get_vdx_helper(self):
         vdx_helper = VDXHelper(url=self.mock_endpoint, keycloak_url=self.keycloak_url,
@@ -308,7 +222,8 @@ class ClientMockServerTest(TestCase):
         vdx_helper = self.get_vdx_helper()
         job_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
 
-        credentials = vdx_helper.get_job_credentials(job_uid=job_uid, mapper=get_paginated_mapper(custom_credential_mapper))
+        credentials = vdx_helper.get_job_credentials(job_uid=job_uid, mapper=get_paginated_mapper(
+            custom_credential_mapper))
         assert credentials is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
