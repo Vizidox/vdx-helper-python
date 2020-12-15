@@ -1252,8 +1252,7 @@
             "in": "query",
             "description": "file id",
             "required": false,
-            "type": "string",
-            "example": "file_id_5998f4893dd69f99d04ec4a7741c7"
+            "type": "string"
           },
           {
             "name": "upload_date_from",
@@ -1777,7 +1776,8 @@
           "200": {
             "description": "OK",
             "schema": {
-              "type": "file"
+              "type": "string",
+              "format": "binary"
             }
           },
           "404": {
