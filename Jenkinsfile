@@ -20,7 +20,7 @@ pipeline {
                     if(!params.get('skipTests', false)) {
                         sh "docker-compose up -d"
                         sh "sleep 3" // prism seems not to be fully up, so some seconds of sleep are needed
-                        sh "docker-compose run vdx-helper pytest tests"
+                        sh "docker-compose run vdx-helper pytest tests --junitxml=/coverage/pytest-report.xml --cov-report=xml:/coverage/coverage.xml --cov=${sonar_analyzed_dir}"
                     }
                 }
             }
