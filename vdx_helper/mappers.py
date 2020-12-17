@@ -6,7 +6,8 @@ from uuid import UUID
 from vdx_helper.typing import Json
 from vdx_helper.models import EnginePermissionsView, FileView, PaginatedView, CredentialView, JobView, JobStatus, \
     VerificationResponseView, VerificationStepResult, StepStatus, CertificateView, ClaimView, PartnerView, \
-    VerificationReport, VerificationStatus
+    VerificationReport, VerificationStatus, CurrencyAmountView
+from vdx_helper.util import optional_datetime_to_string
 
 T = TypeVar('T')
 
@@ -37,6 +38,13 @@ def permissions_mapper(json: Json) -> List[EnginePermissionsView]:
     return permission_views
 
 
+def currency_mapper(json: Json) -> CurrencyAmountView:
+    return CurrencyAmountView(
+        amount=json["amount"],
+        currency=json["currency"]
+    )
+
+
 def file_mapper(json: Json) -> FileView:
     return FileView(
         id=json["id"],
@@ -63,29 +71,31 @@ def credential_mapper(json: Json) -> CredentialView:
 def job_mapper(json: Json) -> JobView:
     return JobView(
         uid=UUID(json["uid"]),
+        partner=partner_mapper(json["partner"]),
         chain=json["chain"],
         tags=json["tags"],
         status=JobStatus(int(json["status"])),
-        start_date=datetime.fromisoformat(json["start_date"]),
-        issued_date=datetime.fromisoformat(json["issued_date"]),
-        finished_date=datetime.fromisoformat(json["finished_date"]) if "finished_date" in json else None,
-        failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None
+        created_date=optional_datetime_to_string(json.get("created_date")),
+        start_date=optional_datetime_to_string(json.get("start_date")),
+        issued_date=optional_datetime_to_string(json.get("issued_date")),
+        finished_date=optional_datetime_to_string(json.get("finished_date")),
+        failed_date=optional_datetime_to_string(json.get("failed_date")),
+        scheduled_date=optional_datetime_to_string(json.get("scheduled_date"))
     )
 
 
 def verification_mapper(json: Json) -> VerificationResponseView:
     return VerificationResponseView(
-        file=file_mapper(json["file"]) if "file" in json else None,
         verification=[verification_step_mapper(step) for step in json["verification"]]
     )
 
 
 def verification_step_mapper(json: Json) -> VerificationStepResult:
-        return VerificationStepResult(
-            name=json["name"],
-            description=json["description"],
-            status=StepStatus(int(json["status"]))
-        )
+    return VerificationStepResult(
+        name=json["name"],
+        description=json["description"],
+        status=StepStatus(int(json["status"]))
+    )
 
 
 def partner_mapper(json: Json):
@@ -107,7 +117,7 @@ def claim_mapper(json: Json) -> ClaimView:
 def certificate_mapper(json: Json) -> CertificateView:
     return CertificateView(
         certificate=claim_mapper(json["certificate"]),
-        last_verification=verification_report_mapper(json["last_verification"]) if "last_verification" in json else None
+        last_verification=verification_report_mapper(json.get("last_verification"))
     )
 
 
@@ -116,4 +126,3 @@ def verification_report_mapper(json: Json) -> VerificationReport:
         status=VerificationStatus(int(json["status"])),
         timestamp=datetime.fromisoformat(json["timestamp"])
     )
-

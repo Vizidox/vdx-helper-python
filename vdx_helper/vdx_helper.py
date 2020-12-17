@@ -10,7 +10,7 @@ import requests
 from nndict import nndict
 
 from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper, \
-    verification_mapper, certificate_mapper
+    verification_mapper, certificate_mapper, currency_mapper
 from vdx_helper.typing import Json
 
 T = TypeVar('T')
@@ -50,9 +50,6 @@ class VDXHelper:
         self.token_expiration_date: float = 0
         self.core_api_key: str = core_api_key
         self.core_api_client_id: str = core_api_client_id
-
-    def _compute_core_file_id(self, file_hash: str) -> str:
-        return f"{self.core_api_client_id}_{file_hash}"
 
     def _get_token_string(self) -> str:
 
@@ -117,6 +114,23 @@ class VDXHelper:
 
         return permissions
 
+    def get_engine_cost(self, engine_name: str, n: int,
+                        mapper: Optional[Callable[[Json], T]] = currency_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        response = requests.get(
+            f"{self.url}/engines/{engine_name}/cost/{n}",
+            headers=self.header
+        )
+
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        currency_cost = mapper(response.json())
+
+        return currency_cost
+
     ################## FILES #####################
     def upload_file(self,
                     filename: str,
@@ -149,6 +163,22 @@ class VDXHelper:
 
         return file_summary
 
+    def get_file_attributes(self, core_id: str, mapper: Callable[[Json], T] = file_mapper) -> T:
+
+        response = requests.get(
+            f"{self.url}/files/{core_id}/attributes",
+            headers=self.header
+        )
+
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        file = mapper(response.json())
+
+        return file
+
     def update_file_attributes(self, core_id: str, filename: str) -> None:
 
         payload = {
@@ -170,11 +200,12 @@ class VDXHelper:
 
     def get_files(self, mapper: Callable[[Json], T] = get_paginated_mapper(file_mapper),
                   upload_date_from: Optional[datetime] = None, upload_date_until: Optional[datetime] = None,
-                  **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+                  file_id: Optional[str] = None, **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         params = nndict(
             upload_date_from=upload_date_from,
             upload_date_until=upload_date_until,
+            file_id=file_id,
             **pagination
         )
 
@@ -211,11 +242,12 @@ class VDXHelper:
         return document_file
 
     def get_credentials(self, mapper: Callable[[Json], T] = get_paginated_mapper(credential_mapper), *,  # type: ignore # https://github.com/python/mypy/issues/3737
-                        metadata: Dicterable = tuple(),
+                        metadata: Dicterable = tuple(), uid: Optional[UUID] = None,
                         start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
                         and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
 
         params = nndict(
+            uid=uid,
             upload_date_from=start_date,
             upload_date_until=end_date,
             and_tags=and_tags,
@@ -256,20 +288,21 @@ class VDXHelper:
 
         return credential
 
-    def create_credential(self, title: str, metadata: Dicterable, tags: Iterable[str], core_id: str,
-                          expiry_date: Optional[str], mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def create_credential(self, title: str, metadata: Dicterable, tags: Iterable[str], core_ids: List[str],
+                          cred_ids: List[UUID], expiry_date: Optional[str], mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
         payload = nndict(
             title=title,
-            metadata=dict(metadata),
-            file_id=core_id,
+            files=core_ids,
+            credentials=cred_ids,
             tags=list(set(tags)),
             expiry_date=expiry_date
         )
+        payload_json = {**payload, "metadata": dict(metadata)}
 
         response = requests.post(
             f"{self.url}/credentials",
             headers=self.header,
-            json=payload
+            json=payload_json
         )
 
         status = HTTPStatus(response.status_code)
@@ -297,18 +330,89 @@ class VDXHelper:
 
         return
 
-    ################## JOBS #####################
-    def issue_job(self, engine: str, credentials: List[UUID], tags: Iterable[str],
-                  mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def replace_credential_tags(self, replace_credential_tags: Iterable[Dict[str, List[str]]]) -> None:
+
+        payload = {
+            "credentials": replace_credential_tags,
+        }
+        response = requests.put(
+            f"{self.url}/credentials",
+            headers=self.header,
+            json=payload
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return
+
+    def delete_credential_tag(self, cred_uid: UUID, tag: str) -> None:
+
+        params = nndict(
+            tag=tag
+        )
+        response = requests.patch(
+            f"{self.url}/credentials/{cred_uid}/delete_tag",
+            headers=self.header,
+            params=params
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return
+
+    def schedule_credentials(self, engine: str, credentials: List[UUID],
+                             mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload: Json = {
             "engine": engine,
-            "credentials": credentials,
-            "tags": list(set(tags)),
+            "credentials": credentials
         }
 
         response = requests.post(
-            f"{self.url}/jobs",
+            f"{self.url}/credentials/schedule",
+            headers=self.header,
+            json=payload
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
+
+        job = mapper(response.json())
+
+        return job
+
+    def verify_by_credential_uid(self, cred_uid: UUID, mapper: Callable[[Json], T] = verification_mapper,
+                                 **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        params = {**nndict(pagination)}
+        response = requests.get(
+            f"{self.url}/verify/credential/{cred_uid}",
+            headers=self.header,
+            params=params
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        verification_response = mapper(response.json())
+
+        return verification_response
+
+    ################## JOBS #####################
+    def issue_job(self, engine: str, mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        payload: Json = {
+            "engine": engine
+        }
+
+        response = requests.post(
+            f"{self.url}/jobs/immediate",
             headers=self.header,
             json=payload
         )
@@ -322,11 +426,12 @@ class VDXHelper:
         return job
 
     def get_jobs(self, mapper: Callable[[Json], T] = get_paginated_mapper(job_mapper), *,  # type: ignore # https://github.com/python/mypy/issues/3737
-                 job_status: Optional[str] = None,
+                 job_status: Optional[str] = None, uid: Optional[UUID] = None,
                  start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
                  and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
 
         params = nndict(
+            uid=uid,
             status=job_status,
             issued_date_from=start_date,
             issued_date_until=end_date,
@@ -382,6 +487,23 @@ class VDXHelper:
 
         return None
 
+    def replace_job_tags(self, replace_job_tags: List[dict]) -> None:
+
+        payload: Json = {
+            "jobs": replace_job_tags,
+        }
+        response = requests.put(
+            f"{self.url}/jobs",
+            headers=self.header,
+            json=payload
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return None
+
     ################## CERTIFICATES #####################
     def verify_by_uid(self, cert_uid: UUID, mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
@@ -424,16 +546,19 @@ class VDXHelper:
 
     def verify_by_file(self, filename: str,
                        file_stream: IOBase,
-                       file_content_type: str, mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+                       file_content_type: str, mapper: Callable[[Json], T] = verification_mapper,
+                       **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload = {
-            "file": (filename, file_stream,  file_content_type)
+            "file": (filename, file_stream, file_content_type)
         }
+        params = {**nndict(pagination)}
 
         response = requests.post(
             f"{self.url}/verify/upload/file",
             headers=self.header,
-            files=payload
+            files=payload,
+            params=params
         )
 
         status = HTTPStatus(response.status_code)
@@ -445,13 +570,14 @@ class VDXHelper:
         return verification_response
 
     def get_certificates(self, mapper: Callable[[Json], T] = get_paginated_mapper(certificate_mapper), *, # type: ignore # https://github.com/python/mypy/issues/3737
-                         job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None,
+                         job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None, uid: Optional[UUID] = None,
                          start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
                          and_credential_tags: Optional[str] = None, or_credential_tags: Optional[str] = None,
                          and_job_tags: Optional[str] = None, or_job_tags: Optional[str] = None,
                          verification_status: Optional[str] = None, **pagination) -> T:
 
         params = nndict(
+            uid=uid,
             job_uid=job_uid,
             credential_uid=cred_uid,
             issued_date_from=start_date,
@@ -502,6 +628,7 @@ class VDXHelper:
         )
 
         params = {**params, **nndict(pagination)}
+
         response = requests.get(
             f"{self.url}/jobs/{job_uid}/certificates",
             headers=self.header,
@@ -515,11 +642,11 @@ class VDXHelper:
         certificates_json = response.json()
         certificates = mapper(certificates_json)
 
-        return status, certificates
+        return certificates
 
-    def get_job_credentials(self, job_uid: UUID, pagination: dict, and_tags: Optional[str] = None,
-                            or_tags: Optional[str] = None,
-                            mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def get_job_credentials(self, job_uid: UUID, and_tags: Optional[str] = None,
+                            or_tags: Optional[str] = None, mapper: Callable[[Json], T] = get_paginated_mapper(credential_mapper),
+                            **pagination) -> Optional[T]:  # type: ignore # https://github.com/python/mypy/issues/3737
         params = nndict(
             and_tags=and_tags,
             or_tags=or_tags
@@ -538,7 +665,7 @@ class VDXHelper:
 
         credentials = mapper(response.json())
 
-        return status, credentials
+        return credentials
 
     def download_certificate(self, cert_uid: UUID) -> io.BytesIO:
 

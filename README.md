@@ -1,9 +1,10 @@
 # VDX Helper
-This repository provides a wrapper for every call from Portal to Core Api and is called vdx-helper.
-In other words, when working with Portal Api, the need of interaction with Core Api to manipulate database
+This repository provides a wrapper for every call made to VDX Core Api.
+
 ## How it works
 This helper first needs to be authorized by wielding valid token from Keycloak, then use that token for further requests as long as it has not expired.
-Each method also allows one to include their own custom mappers in, enabling the method to return the result in the format the user wishes
+
+Each method also allows one to include their own custom mappers, enabling the method to return the result in the format the user wishes.
 ![workflow illustration](doc/images/vdx-helper.png)
 
 ## Prerequisites
@@ -45,10 +46,10 @@ vdx_helper.upload_file(file=the_file_to_upload, mapper=example_mapper)
 
 ## Running the tests
 
-Set up a container with the attached *Dockerfile* and run the line below within the container
+You can run the tests with poetry if you like. You can also obtain the code coverage.
 
 ```
-python -m tests
+poetry run pytest --cov=vdx_helper
 ```
 
 ### Run the test locally with docker-compose step-by-step
@@ -68,8 +69,10 @@ python -m tests
 ## Authors
 
 * **Tiago Santos** - *Initial work* - [Vizidox](https://vizidox.com)
-* **Sara Pereira** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
+* **Joana Teixeira** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
 * **Lê Hồng Hiếu** - *Library definition* - [Vizidox](https://vizidox.com)
+* **Rita Mariquitos** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
+
 ## License
 
 All of the code developed in this project belongs to Vizidox Solutions Limited under the ownership of Freddy Elturk and 
