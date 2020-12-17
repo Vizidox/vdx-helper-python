@@ -900,28 +900,3 @@ class VdxHelperTest(unittest.TestCase):
             vdx_helper.delete_credential_tag(cred_uid=cred_uid, tag=credential_tag)
         except VDXError:
             self.assertEqual(f"{self.url}/credentials/{cred_uid}/delete_tag", requests.patch.call_args[0][0])
-
-    @patch('vdx_helper.vdx_helper.requests')
-    @patch('vdx_helper.vdx_helper.io')
-    @patch('vdx_helper.vdx_helper.VDXHelper.header')
-    def test_download_file(self, header, io, requests):
-        vdx_helper = self.get_vdx_helper()
-        response = MagicMock()
-        requests.get.return_value = response
-        io.BytesIO.return_value = "file"
-        file_id = "hello_is_file_id"
-
-        # OK case
-        response.status_code = HTTPStatus.OK
-        file = vdx_helper.download_file(file_id=file_id)
-        self.assertEqual("file", file)
-        self.assertEqual(f"{self.url}/files/{file_id}", requests.get.call_args[0][0])
-
-        # not OK case
-        file = None
-        response.status_code = HTTPStatus.CONFLICT
-        try:
-            file = vdx_helper.download_file(file_id=file_id)
-        except VDXError:
-            self.assertIsNone(file)
-            self.assertEqual(f"{self.url}/files/{file_id}", requests.get.call_args[0][0])
