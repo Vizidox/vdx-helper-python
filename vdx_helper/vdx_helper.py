@@ -1,19 +1,21 @@
+import io
 import time
 from datetime import datetime
 from http import HTTPStatus
-from typing import Optional, Tuple, Callable, Any, Dict, List, TypeVar
-import io
+from io import IOBase
+from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, List, Union, Iterable, Hashable
 from uuid import UUID
 
 import requests
+from nndict import nndict
 
-from portal.settings import VDX_CORE_API_KEY, VDX_CORE_API_CLIENT_ID
-from werkzeug.datastructures import FileStorage
-
-from flask import request
+from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper, \
+    verification_mapper, certificate_mapper, currency_mapper
+from vdx_helper.typing import Json
 
 T = TypeVar('T')
-Json = Dict[str, Any]
+
+Dicterable = Union[Dict, Iterable[Tuple[Hashable, Any]]]
 
 
 def get_json_mapper() -> Callable[[Json], Json]:
@@ -23,23 +25,38 @@ def get_json_mapper() -> Callable[[Json], Json]:
 
 
 class VDXError(Exception):
-    pass
+
+    def __init__(self, code: HTTPStatus, message: str):
+        self.code = code
+        self.message = message
+
+
+def error_from_response(status, response):
+    if status is not HTTPStatus.OK:
+        try:
+            json_response = response.json()
+            description = json_response.get("description")
+        except (ValueError, AttributeError):
+            description = ""
+        return VDXError(code=status, message=description)
 
 
 class VDXHelper:
 
-    def __init__(self, url: str, keycloak_url: str) -> None:
-        self.url = url
+    def __init__(self, url: str, keycloak_url: str, core_api_key: str, core_api_client_id: str) -> None:
+        self.url = url.rstrip("/")
         self.keycloak_url = keycloak_url
         self.auth_token: Optional[str] = None
         self.token_expiration_date: float = 0
+        self.core_api_key: str = core_api_key
+        self.core_api_client_id: str = core_api_client_id
 
     def _get_token_string(self) -> str:
 
         if self.auth_token is None or time.time() > self.token_expiration_date:
             status, self.auth_token, token_expiration_date = self._get_token()
             if self.auth_token is None or token_expiration_date is None:
-                raise VDXError("API Authentication failed")
+                raise VDXError(status, "API Authentication failed")
             else:
                 self.token_expiration_date = token_expiration_date
 
@@ -52,8 +69,8 @@ class VDXHelper:
         }
 
         payload = {
-            "client_id": VDX_CORE_API_CLIENT_ID,
-            "client_secret": VDX_CORE_API_KEY,
+            "client_id": self.core_api_client_id,
+            "client_secret": self.core_api_key,
             "grant_type": "client_credentials"
         }
 
@@ -72,7 +89,8 @@ class VDXHelper:
 
         return status, access_token, token_expiration_date
 
-    def _get_request_header(self):
+    @property
+    def header(self):
         headers = {
             "Authorization": "Bearer " + self._get_token_string(),
             "Accept": "application/json"
@@ -80,43 +98,50 @@ class VDXHelper:
         return headers
 
     ################## ENGINES #####################
-    def engine_cost(self, engine_name: str, n: int,  mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-        response = requests.get(
-            f"{self.url}/engines/{engine_name}/cost/{n}",
-            headers=self._get_request_header()
-        )
-
-        status = HTTPStatus(response.status_code)
-        currency_amount = None
-
-        if status is HTTPStatus.OK:
-            currency_amount = mapper(response.json())
-
-        return status, currency_amount
-
-    def get_partner_permissions(self, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def get_partner_permissions(self, mapper: Optional[Callable[[Json], T]] = permissions_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
             f"{self.url}/engines",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         status = HTTPStatus(response.status_code)
-        permissions = None
 
-        if status is HTTPStatus.OK:
-            permissions = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, permissions
+        permissions = mapper(response.json())
+
+        return permissions
+
+    def get_engine_cost(self, engine_name: str, n: int,
+                        mapper: Optional[Callable[[Json], T]] = currency_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        response = requests.get(
+            f"{self.url}/engines/{engine_name}/cost/{n}",
+            headers=self.header
+        )
+
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        currency_cost = mapper(response.json())
+
+        return currency_cost
 
     ################## FILES #####################
-    def upload_file(self, file: FileStorage, ignore_duplicated: bool = False,
-                    mapper: Callable[[], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-
-        file.stream.seek(0)
+    def upload_file(self,
+                    filename: str,
+                    file_stream: IOBase,
+                    file_content_type: str,
+                    ignore_duplicated: bool = False,
+                    mapper: Callable[[Json], T] = file_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+        file_stream.seek(0)
 
         payload = {
-            "file": (file.filename, file.stream, file.content_type),
+            "file": (filename, file_stream, file_content_type),
         }
         form_data = {
             "ignore_duplicated": ignore_duplicated
@@ -124,20 +149,37 @@ class VDXHelper:
 
         response = requests.post(
             f"{self.url}/files",
-            headers=self._get_request_header(),
+            headers=self.header,
             files=payload,
             data=form_data
         )
 
         status = HTTPStatus(response.status_code)
-        file_summary = None
 
-        if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            file_summary = mapper(response.json())
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
 
-        return status, file_summary
+        file_summary = mapper(response.json())
 
-    def update_file_attributes(self, core_id: str, filename: str) -> HTTPStatus:
+        return file_summary
+
+    def get_file_attributes(self, core_id: str, mapper: Callable[[Json], T] = file_mapper) -> T:
+
+        response = requests.get(
+            f"{self.url}/files/{core_id}/attributes",
+            headers=self.header
+        )
+
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        file = mapper(response.json())
+
+        return file
+
+    def update_file_attributes(self, core_id: str, filename: str) -> None:
 
         payload = {
             "filename": filename
@@ -145,359 +187,499 @@ class VDXHelper:
 
         response = requests.put(
             f"{self.url}/files/{core_id}/attributes",
-            headers=self._get_request_header(),
+            headers=self.header,
             json=payload
         )
 
-        return HTTPStatus(response.status_code)
+        status = HTTPStatus(response.status_code)
 
-    def get_files(self, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return
+
+    def get_files(self, mapper: Callable[[Json], T] = get_paginated_mapper(file_mapper),
+                  upload_date_from: Optional[datetime] = None, upload_date_until: Optional[datetime] = None,
+                  file_id: Optional[str] = None, **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        params = nndict(
+            upload_date_from=upload_date_from,
+            upload_date_until=upload_date_until,
+            file_id=file_id,
+            **pagination
+        )
 
         response = requests.get(
             f"{self.url}/files",
-            headers=self._get_request_header()
-        )
-
-        status = HTTPStatus(response.status_code)
-        files = None
-
-        if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            files = mapper(response.json())
-
-        return status, files
-
-    def download_printable_file(self, core_id: str, qr_url: str) -> Tuple[HTTPStatus, Optional[io.BytesIO]]:  # type: ignore # https://github.com/python/mypy/issues/3737
-
-        params = {'qr_url': qr_url}
-
-        response = requests.get(
-            f"{self.url}/files/{core_id}/printable",
-            headers=self._get_request_header(),
+            headers=self.header,
             params=params
         )
 
         status = HTTPStatus(response.status_code)
 
-        printable_file = None
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
 
-        if status is HTTPStatus.OK:
-            printable_file = io.BytesIO(response.content)
+        files = mapper(response.json())
 
-        return status, printable_file
+        return files
 
     ################## CREDENTIALS #####################
-    def download_credential_file(self, doc_uid: UUID) -> Tuple[HTTPStatus, Optional[io.BytesIO]]:
+    def download_credential_file(self, doc_uid: UUID) -> io.BytesIO:
 
         response = requests.get(
             f"{self.url}/credentials/{doc_uid}/file",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
         status = HTTPStatus(response.status_code)
-        document_file = None
 
-        if status is HTTPStatus.OK:
-            document_file = io.BytesIO(response.content)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, document_file
+        document_file = io.BytesIO(response.content)
 
-    def get_credentials(self, pagination: dict, mapper: Callable[[Json], T] = get_json_mapper(), *,  # type: ignore # https://github.com/python/mypy/issues/3737
-                        uid: Optional[UUID], metadata: dict, start_date: Optional[datetime] = None,
-                        end_date: Optional[datetime] = None, tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
+        return document_file
 
-        params: dict = {
-            'uid': uid,
-            'start_upload_date': start_date,
-            'end_upload_date': end_date,
-            "tags": tags
-        }
+    def get_credentials(self, mapper: Callable[[Json], T] = get_paginated_mapper(credential_mapper), *,  # type: ignore # https://github.com/python/mypy/issues/3737
+                        metadata: Dicterable = tuple(), uid: Optional[UUID] = None,
+                        start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
+                        and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
 
-        params = {**params, **metadata, **pagination}
+        params = nndict(
+            uid=uid,
+            upload_date_from=start_date,
+            upload_date_until=end_date,
+            and_tags=and_tags,
+            or_tags=or_tags
+        )
+
+        metadata_filters = {key if key.startswith('metadata_') else f"metadata_{key}": value
+                            for key, value in nndict(metadata)}
+
+        params = {**params, **metadata_filters, **nndict(pagination)}
 
         response = requests.get(
             f"{self.url}/credentials",
-            headers=self._get_request_header(),
+            headers=self.header,
             params=params
         )
 
-        document_views = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            document_views = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, document_views
+        document_views = mapper(response.json())
 
-    def get_credential(self, cred_uid: UUID, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return document_views
+
+    def get_credential(self, cred_uid: UUID, mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
             f"{self.url}/credentials/{cred_uid}",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
-        credential = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            credential = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, credential
+        credential = mapper(response.json())
 
-    def create_credential(self, title: str, metadata: dict, tags: List[str], core_id: str, expiry_date: Optional[datetime],
-                          mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return credential
 
-        payload: Json = {
-            "title": title,
-            "metadata": metadata,
-            "file_id": core_id,
-            "tags": tags
-        }
-
-        if expiry_date is not None:
-            payload['expiry_date'] = expiry_date
-
+    def create_credential(self, title: str, metadata: Dicterable, tags: Iterable[str], core_ids: List[str],
+                          cred_ids: List[UUID], expiry_date: Optional[str], mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+        payload = nndict(
+            title=title,
+            files=core_ids,
+            credentials=cred_ids,
+            tags=list(set(tags)),
+            expiry_date=expiry_date
+        )
+        payload_json = {**payload, "metadata": dict(metadata)}
 
         response = requests.post(
             f"{self.url}/credentials",
-            headers=self._get_request_header(),
-            json=payload
+            headers=self.header,
+            json=payload_json
         )
 
-        document = None
-
         status = HTTPStatus(response.status_code)
-        if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            document = mapper(response.json())
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
 
-        return status, document
+        document = mapper(response.json())
 
-    def update_credential_tags(self, updated_credential_tags: List[dict]) -> HTTPStatus:
+        return document
 
-        payload: Json = {
+    def update_credential_tags(self, updated_credential_tags: Iterable[Dict[str, List[str]]]) -> None:
+
+        payload = {
             "credentials": updated_credential_tags,
         }
         response = requests.patch(
             f"{self.url}/credentials",
-            headers=self._get_request_header(),
+            headers=self.header,
             json=payload
         )
 
         status = HTTPStatus(response.status_code)
-        return status
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-    ################## JOBS #####################
-    def issue_job(self, engine: str, credentials: List[UUID], tags: List[str],
-                  mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return
 
-        payload: Json = {
-            "engine": engine,
-            "credentials": credentials,
-            "tags": tags,
+    def replace_credential_tags(self, replace_credential_tags: Iterable[Dict[str, List[str]]]) -> None:
+
+        payload = {
+            "credentials": replace_credential_tags,
         }
-
-        response = requests.post(
-            f"{self.url}/jobs",
-            headers=self._get_request_header(),
+        response = requests.put(
+            f"{self.url}/credentials",
+            headers=self.header,
             json=payload
         )
 
-        job = None
-
         status = HTTPStatus(response.status_code)
-        if status in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            job = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, job
+        return
 
-    def get_jobs(self, pagination: dict, mapper: Callable[[Json], T] = get_json_mapper(), *,  # type: ignore # https://github.com/python/mypy/issues/3737
-                 uid: Optional[UUID] = None, job_status: Optional[str] = None,
-                 start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
-                 tags: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
+    def delete_credential_tag(self, cred_uid: UUID, tag: str) -> None:
 
-        params: dict = {
-            'uid': uid,
-            'status': job_status,
-            'start_issued_date': start_date,
-            'end_issued_date': end_date,
-            "tags": tags
-        }
-
-        params = {**params, **pagination}
-
-        response = requests.get(
-            f"{self.url}/jobs",
-            headers=self._get_request_header(),
+        params = nndict(
+            tag=tag
+        )
+        response = requests.patch(
+            f"{self.url}/credentials/{cred_uid}/delete_tag",
+            headers=self.header,
             params=params
         )
 
-        issuer_jobs = None
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return
+
+    def schedule_credentials(self, engine: str, credentials: List[UUID],
+                             mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        payload: Json = {
+            "engine": engine,
+            "credentials": credentials
+        }
+
+        response = requests.post(
+            f"{self.url}/credentials/schedule",
+            headers=self.header,
+            json=payload
+        )
 
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            issuer_jobs = mapper(response.json())
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
 
-        return status, issuer_jobs
+        job = mapper(response.json())
 
-    def get_job(self, job_uid: UUID, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return job
+
+    def verify_by_credential_uid(self, cred_uid: UUID, mapper: Callable[[Json], T] = verification_mapper,
+                                 **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        params = {**nndict(pagination)}
+        response = requests.get(
+            f"{self.url}/verify/credential/{cred_uid}",
+            headers=self.header,
+            params=params
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        verification_response = mapper(response.json())
+
+        return verification_response
+
+    ################## JOBS #####################
+    def issue_job(self, engine: str, mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        payload: Json = {
+            "engine": engine
+        }
+
+        response = requests.post(
+            f"{self.url}/jobs/immediate",
+            headers=self.header,
+            json=payload
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
+            raise error_from_response(status, response)
+
+        job = mapper(response.json())
+
+        return job
+
+    def get_jobs(self, mapper: Callable[[Json], T] = get_paginated_mapper(job_mapper), *,  # type: ignore # https://github.com/python/mypy/issues/3737
+                 job_status: Optional[str] = None, uid: Optional[UUID] = None,
+                 start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
+                 and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
+
+        params = nndict(
+            uid=uid,
+            status=job_status,
+            issued_date_from=start_date,
+            issued_date_until=end_date,
+            and_tags=and_tags,
+            or_tags=or_tags
+        )
+
+        params = {**params, **nndict(pagination)}
+
+        response = requests.get(
+            f"{self.url}/jobs",
+            headers=self.header,
+            params=params
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        issuer_jobs = mapper(response.json())
+
+        return issuer_jobs
+
+    def get_job(self, job_uid: UUID, mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
             f"{self.url}/jobs/{job_uid}",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
-        job = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            job = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, job
+        job = mapper(response.json())
 
-    def update_job_tags(self, updated_job_tags: List[dict]) -> HTTPStatus:
+        return job
+
+    def update_job_tags(self, updated_job_tags: List[dict]) -> None:
 
         payload: Json = {
             "jobs": updated_job_tags,
         }
         response = requests.patch(
             f"{self.url}/jobs",
-            headers=self._get_request_header(),
+            headers=self.header,
             json=payload
         )
 
         status = HTTPStatus(response.status_code)
-        return status
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return None
+
+    def replace_job_tags(self, replace_job_tags: List[dict]) -> None:
+
+        payload: Json = {
+            "jobs": replace_job_tags,
+        }
+        response = requests.put(
+            f"{self.url}/jobs",
+            headers=self.header,
+            json=payload
+        )
+
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        return None
 
     ################## CERTIFICATES #####################
-    def verify_by_uid(self, cert_uid: UUID, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def verify_by_uid(self, cert_uid: UUID, mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         response = requests.get(
             f"{self.url}/verify/{cert_uid}",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
-        verification_response = None
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            verification_response = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, verification_response
+        verification_response = mapper(response.json())
 
-    def verify_by_certificate(self, file: FileStorage, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return verification_response
 
-        file.stream.seek(0)
+    def verify_by_certificate(self, filename: str,
+                              file_stream: IOBase,
+                              file_content_type: str,
+                              mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+
+        file_stream.seek(0)
         payload = {
-            "file": (file.filename, file.stream, file.content_type)
+            "file": (filename, file_stream, file_content_type)
         }
 
         response = requests.post(
             f"{self.url}/verify/upload/certificate",
-            headers=self._get_request_header(),
+            headers=self.header,
             files=payload
         )
 
-        verification_response = None
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            verification_response = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, verification_response
+        verification_response = mapper(response.json())
 
-    def verify_by_file(self, file: FileStorage, mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return verification_response
+
+    def verify_by_file(self, filename: str,
+                       file_stream: IOBase,
+                       file_content_type: str, mapper: Callable[[Json], T] = verification_mapper,
+                       **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload = {
-            "file": (file.filename, file.stream, file.content_type)
+            "file": (filename, file_stream, file_content_type)
         }
+        params = {**nndict(pagination)}
 
         response = requests.post(
             f"{self.url}/verify/upload/file",
-            headers=self._get_request_header(),
-            files=payload
+            headers=self.header,
+            files=payload,
+            params=params
         )
 
-        verification_response = None
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            verification_response = mapper(response.json())
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, verification_response
+        verification_response = mapper(response.json())
 
-    def get_certificates(self, pagination: dict, mapper: Callable[[Json], T] = get_json_mapper(), *, # type: ignore # https://github.com/python/mypy/issues/3737
-                         uid: Optional[UUID] = None, job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None,
+        return verification_response
+
+    def get_certificates(self, mapper: Callable[[Json], T] = get_paginated_mapper(certificate_mapper), *, # type: ignore # https://github.com/python/mypy/issues/3737
+                         job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None, uid: Optional[UUID] = None,
                          start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
-                         credential_tags: Optional[str] = None, job_tags: Optional[str] = None,
-                         verification_status: Optional[str] = None) -> Tuple[HTTPStatus, Optional[T]]:
+                         and_credential_tags: Optional[str] = None, or_credential_tags: Optional[str] = None,
+                         and_job_tags: Optional[str] = None, or_job_tags: Optional[str] = None,
+                         verification_status: Optional[str] = None, **pagination) -> T:
 
-        params: dict = {
-            'uid': uid,
-            'job_uid': job_uid,
-            'credential_uid': cred_uid,
-            'start_issued_date': start_date,
-            'end_issued_date': end_date,
-            "credential_tags": credential_tags,
-            "job_tags": job_tags,
-            "verification_status": verification_status
-        }
+        params = nndict(
+            uid=uid,
+            job_uid=job_uid,
+            credential_uid=cred_uid,
+            issued_date_from=start_date,
+            issued_date_until=end_date,
+            and_credential_tags=and_credential_tags,
+            or_credential_tags=or_credential_tags,
+            and_job_tags=and_job_tags,
+            or_job_tags=or_job_tags,
+            verification_status=verification_status
+        )
 
-        params = {**params, **pagination}
+        params = {**params, **nndict(pagination)}
 
         response = requests.get(
             f"{self.url}/certificates",
-            headers=self._get_request_header(),
+            headers=self.header,
             params=params
         )
 
-        certificates = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            certificates_json = response.json()
-            certificates = mapper(certificates_json)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, certificates
+        certificates_json = response.json()
+        certificates = mapper(certificates_json)
 
-    def revoke_certificate(self, cert_uid: UUID) -> HTTPStatus:
+        return certificates
+
+    def revoke_certificate(self, cert_uid: UUID) -> None:
 
         response = requests.post(
             f"{self.url}/certificates/{cert_uid}/revoke",
-            headers=self._get_request_header()
+            headers=self.header
         )
 
-        return HTTPStatus(response.status_code)
+        status = HTTPStatus(response.status_code)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-    def get_job_certificates(self, job_uid: UUID, pagination: dict,
-                             mapper: Callable[[Json], T] = get_json_mapper()) -> Tuple[HTTPStatus, Optional[T]]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        return
 
-        params: dict = {}
+    def get_job_certificates(self, job_uid: UUID, and_tags: Optional[str] = None, or_tags: Optional[str] = None,
+                             mapper: Callable[[Json], T] = get_paginated_mapper(certificate_mapper), **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
-        params = {**params, **pagination}
+        params = nndict(
+            and_tags=and_tags,
+            or_tags=or_tags
+        )
+
+        params = {**params, **nndict(pagination)}
 
         response = requests.get(
             f"{self.url}/jobs/{job_uid}/certificates",
-            headers=self._get_request_header(),
+            headers=self.header,
             params=params
         )
 
-        certificates = None
-
         status = HTTPStatus(response.status_code)
-        if status is HTTPStatus.OK:
-            certificates_json = response.json()
-            certificates = mapper(certificates_json)
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        return status, certificates
+        certificates_json = response.json()
+        certificates = mapper(certificates_json)
 
-    def download_certificate(self, cert_uid: UUID) ->Tuple[HTTPStatus, Optional[io.BytesIO]]:
+        return certificates
+
+    def get_job_credentials(self, job_uid: UUID, and_tags: Optional[str] = None,
+                            or_tags: Optional[str] = None, mapper: Callable[[Json], T] = get_paginated_mapper(credential_mapper),
+                            **pagination) -> Optional[T]:  # type: ignore # https://github.com/python/mypy/issues/3737
+        params = nndict(
+            and_tags=and_tags,
+            or_tags=or_tags
+        )
+        params = {**params, **nndict(pagination)}
 
         response = requests.get(
-            f"{self.url}/certificates/{cert_uid}/download",
-            headers=self._get_request_header()
+            f"{self.url}/jobs/{job_uid}/credentials",
+            headers=self.header,
+            params=params
         )
 
         status = HTTPStatus(response.status_code)
-        certificate = None
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
 
-        if status is HTTPStatus.OK:
-            certificate = io.BytesIO(response.content)
+        credentials = mapper(response.json())
 
-        return status, certificate
+        return credentials
+
+    def download_certificate(self, cert_uid: UUID) -> io.BytesIO:
+
+        response = requests.get(
+            f"{self.url}/certificates/{cert_uid}/download",
+            headers=self.header
+        )
+
+        status = HTTPStatus(response.status_code)
+
+        if status is not HTTPStatus.OK:
+            raise error_from_response(status, response)
+
+        certificate = io.BytesIO(response.content)
+
+        return certificate
 

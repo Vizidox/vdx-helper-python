@@ -1,15 +1,20 @@
 [tool.poetry]
 name = "vdx-helper"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
-authors = ["Tiago Santos <tiago.santos@vizidox.com>"]
+authors = ["Joana Teixeira <joana.teixeira@vizidox.com>", "Tiago Santos <tiago.santos@vizidox.com>",
+"Hieu Le <hieu.le@morphotech.co.uk>", "Rita Mariquitos <rita.mariquitos@morphotech.co.uk>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "3.7.7"
+requests="2.22.0"
+nndict="1.0.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.0"
+pytest = "5.4.3"
+coverage = "^5.0"
+pytest-cov = "^2.10.1"
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry>=1.0"]
 build-backend = "poetry.masonry.api"
