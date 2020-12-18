@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 
-def optional_datetime_to_string(dt: Optional[str]) -> Optional[datetime]:
+def optional_datetime_from_string(dt: Optional[str]) -> Optional[datetime]:
     """
     Converts a datelike string to a datetime object.
     If the date is None, then returns None

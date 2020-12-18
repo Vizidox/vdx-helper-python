@@ -7,7 +7,7 @@ from vdx_helper.typing import Json
 from vdx_helper.models import EnginePermissionsView, FileView, PaginatedView, CredentialView, JobView, JobStatus, \
     VerificationResponseView, VerificationStepResult, StepStatus, CertificateView, ClaimView, PartnerView, \
     VerificationReport, VerificationStatus, CurrencyAmountView
-from vdx_helper.util import optional_datetime_to_string
+from vdx_helper.util import optional_datetime_from_string
 
 T = TypeVar('T')
 
@@ -64,7 +64,7 @@ def credential_mapper(json: Json) -> CredentialView:
         credentials=[credential_mapper(credential) for credential in json["credentials"]],
         upload_date=datetime.fromisoformat(json["upload_date"]),
         tags=json["tags"],
-        expiry_date=datetime.fromisoformat(json["expiry_date"])
+        expiry_date=optional_datetime_from_string(json["expiry_date"])
     )
 
 
@@ -75,12 +75,12 @@ def job_mapper(json: Json) -> JobView:
         chain=json["chain"],
         tags=json["tags"],
         status=JobStatus(int(json["status"])),
-        created_date=optional_datetime_to_string(json.get("created_date")),
-        start_date=optional_datetime_to_string(json.get("start_date")),
-        issued_date=optional_datetime_to_string(json.get("issued_date")),
-        finished_date=optional_datetime_to_string(json.get("finished_date")),
-        failed_date=optional_datetime_to_string(json.get("failed_date")),
-        scheduled_date=optional_datetime_to_string(json.get("scheduled_date"))
+        created_date=optional_datetime_from_string(json.get("created_date")),
+        start_date=optional_datetime_from_string(json.get("start_date")),
+        issued_date=optional_datetime_from_string(json.get("issued_date")),
+        finished_date=optional_datetime_from_string(json.get("finished_date")),
+        failed_date=optional_datetime_from_string(json.get("failed_date")),
+        scheduled_date=optional_datetime_from_string(json.get("scheduled_date"))
     )
 
 
