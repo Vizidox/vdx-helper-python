@@ -1,0 +1,10 @@
+version: "3"
+services:
+    vdx-helper:
+        build: .
+        command: ["tail", "-f", "/dev/null"]
+        volumes:
+            - ./:/home/app
+        container_name: vdx-helper
+        env_file: 
+            - .env.local
