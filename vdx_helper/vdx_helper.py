@@ -2,8 +2,7 @@ import io
 import time
 from datetime import datetime
 from http import HTTPStatus
-from io import IOBase
-from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, List, Union, Iterable, Hashable
+from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, List, Union, Iterable, Hashable, BinaryIO
 from uuid import UUID
 
 import requests
@@ -134,7 +133,7 @@ class VDXHelper:
     ################## FILES #####################
     def upload_file(self,
                     filename: str,
-                    file_stream: IOBase,
+                    file_stream: BinaryIO,
                     file_content_type: str,
                     ignore_duplicated: bool = False,
                     mapper: Callable[[Json], T] = file_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
@@ -521,7 +520,7 @@ class VDXHelper:
         return verification_response
 
     def verify_by_certificate(self, filename: str,
-                              file_stream: IOBase,
+                              file_stream: BinaryIO,
                               file_content_type: str,
                               mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
@@ -545,7 +544,7 @@ class VDXHelper:
         return verification_response
 
     def verify_by_file(self, filename: str,
-                       file_stream: IOBase,
+                       file_stream: BinaryIO,
                        file_content_type: str, mapper: Callable[[Json], T] = verification_mapper,
                        **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
