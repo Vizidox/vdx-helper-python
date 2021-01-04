@@ -85,9 +85,10 @@ class ClientMockServerTest(TestCase):
         #     "message": "FST_ERR_CTP_INVALID_CONTENT_LENGTH: Request body size did not match Content-Length"
         #  }
         #  It seems it is a common issue: https://github.com/stoplightio/prism/issues/432 still yet to be fixed.
+        #  Jira issue: https://vizidox.atlassian.net/browse/VDX-857
 
         headers = {
-            "Authorization": "Bearer " + "dsada",
+            "Authorization": "Bearer " + "token",
             "Accept": "application/json"
         }
         response = requests.post(
@@ -179,8 +180,9 @@ class ClientMockServerTest(TestCase):
         #     "message": "FST_ERR_CTP_INVALID_CONTENT_LENGTH: Request body size did not match Content-Length"
         #  }
         #  It seems it is a common issue: https://github.com/stoplightio/prism/issues/432 still yet to be fixed.
+        #  Jira issue: https://vizidox.atlassian.net/browse/VDX-857
         headers = {
-            "Authorization": "Bearer " + "dsada",
+            "Authorization": "Bearer " + "token",
             "Accept": "application/json"
         }
         response = requests.post(
@@ -210,7 +212,6 @@ class ClientMockServerTest(TestCase):
         vdx_helper = self.get_vdx_helper()
         _get_token_string.return_value = "vizidox-authorization"
         cert_uid = UUID('123e4567-e89b-12d3-a456-426655440000')
-        # todo fix this
         verification_response = vdx_helper.verify_by_uid(cert_uid=cert_uid, mapper=custom_verification_mapper)
         assert verification_response is not None
 
@@ -231,9 +232,11 @@ class ClientMockServerTest(TestCase):
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
     def test_download_certificate(self, _get_token_string):
-        # WARNING: Prism does not currently support mocked file types for application/octet-stream so the swagger.json file
-        # was changed reproduces that. It produces "application/json" instead.
+        # WARNING: Prism does not currently support mocked file types for application/octet-stream
+        # so the swagger.json file was changed to reproduce that. It produces "application/json" instead.
         # https://github.com/stoplightio/prism/issues/432
+        # Jira issue: https://vizidox.atlassian.net/browse/VDX-857
+
         vdx_helper = self.get_vdx_helper()
         _get_token_string.return_value = "vizidox-authorization"
         cert_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
