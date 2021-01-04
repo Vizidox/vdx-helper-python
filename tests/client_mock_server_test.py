@@ -61,14 +61,6 @@ class ClientMockServerTest(TestCase):
         assert permissions is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
-    def test_get_engine_cost(self, _get_token_string) -> None:
-        _get_token_string.return_value = "vizidox-authorization"
-        vdx_helper = self.get_vdx_helper()
-        # todo this endpoint is not available in the core-api
-        # permissions = vdx_helper.get_engine_cost('dogecoin', 10)
-        # assert permissions is not None
-
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
     def test_get_files(self, _get_token_string) -> None:
         _get_token_string.return_value = "vizidox-authorization"
         vdx_helper = self.get_vdx_helper()
