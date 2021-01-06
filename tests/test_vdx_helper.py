@@ -90,7 +90,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         expected_header = {
             "Authorization": "Bearer " + "vizidox-authorization",
-            "Accept": "application/json, */*"
+            "Accept": "application/json"
         }
         header = vdx_helper.header
         self.assertDictEqual(expected_header, header)

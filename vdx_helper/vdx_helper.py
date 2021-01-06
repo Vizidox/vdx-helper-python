@@ -93,7 +93,7 @@ class VDXHelper:
     def header(self):
         headers = {
             "Authorization": "Bearer " + self._get_token_string(),
-            "Accept": "application/json, */*"
+            "Accept": "application/json"
         }
         return headers
 
