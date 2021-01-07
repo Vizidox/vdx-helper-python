@@ -108,7 +108,6 @@ class VDXHelper:
 
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
-
         permissions = mapper(response.json())
 
         return permissions
@@ -218,28 +217,11 @@ class VDXHelper:
 
         if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
             raise error_from_response(status, response)
-
         files = mapper(response.json())
 
         return files
 
     ################## CREDENTIALS #####################
-    def download_credential_file(self, doc_uid: UUID) -> io.BytesIO:
-
-        response = requests.get(
-            f"{self.url}/credentials/{doc_uid}/file",
-            headers=self.header
-        )
-
-        status = HTTPStatus(response.status_code)
-
-        if status is not HTTPStatus.OK:
-            raise error_from_response(status, response)
-
-        document_file = io.BytesIO(response.content)
-
-        return document_file
-
     def get_credentials(self, mapper: Callable[[Json], T] = get_paginated_mapper(credential_mapper), *,  # type: ignore # https://github.com/python/mypy/issues/3737
                         metadata: Dicterable = tuple(), uid: Optional[UUID] = None,
                         start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,

@@ -1,0 +1,3258 @@
+{
+  "info": {
+    "version": "5.6.0-dev",
+    "title": "vizidox",
+    "description": "",
+    "termsOfService": "/tos"
+  },
+  "paths": {
+    "/api/verify/upload/certificate": {
+      "post": {
+        "summary": "Verify by certificate",
+        "description": "user is required to get the download URL if the file is not public",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/VerificationResponse"
+            }
+          },
+          "400": {
+            "description": "no_file_on_payload",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "bad_certificate_json",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "certificate file",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "tags": [
+          "verification"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "verify_by_certificate"
+      }
+    },
+    "/api/verify/upload/file": {
+      "post": {
+        "summary": "Verify by file",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/VerificationResponse"
+            }
+          },
+          "400": {
+            "description": "no_file_on_payload",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_certificate",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "credential file",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "field name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc/desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size (0 to return all)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          }
+        ],
+        "tags": [
+          "verification"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "verify_by_file"
+      }
+    },
+    "/api/credentials/schedule": {
+      "post": {
+        "summary": "Schedule credentials to be issued at a later date",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Job"
+            }
+          },
+          "404": {
+            "description": "missing_credential",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "credential_already_scheduled_or_issued",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_blockchain_engine",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issuing params",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "engine",
+                "credentials"
+              ],
+              "properties": {
+                "engine": {
+                  "type": "string",
+                  "example": "bitcoin"
+                },
+                "credentials": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "title": "uuid",
+                    "example": "123e4567-e89b-12d3-a456-426655440000",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "schedule_credentials"
+      }
+    },
+    "/api/admin/secret": {
+      "get": {
+        "summary": "Get api secret",
+        "description": "Get an API secret to be used in your application",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "404": {
+            "description": "missing_auth_id",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "unavailable_auth",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "user_auth": [
+              "openid"
+            ]
+          }
+        ],
+        "operationId": "get_api_secret"
+      },
+      "post": {
+        "summary": "Reset api secret",
+        "description": "Revokes current API secret and creates a new one",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "404": {
+            "description": "missing_partner | missing_auth_id",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "unavailable_auth",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "user_auth": [
+              "openid"
+            ]
+          }
+        ],
+        "operationId": "reset_api_secret"
+      }
+    },
+    "/api/jobs/immediate": {
+      "post": {
+        "summary": "Issue job",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Job"
+            }
+          },
+          "404": {
+            "description": "missing_job",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "empty_credential_list",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_blockchain_engine",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issuing params",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "engine"
+              ],
+              "properties": {
+                "engine": {
+                  "type": "string",
+                  "example": "bitcoin"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "job"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "issue_job"
+      }
+    },
+    "/api/certificates": {
+      "get": {
+        "summary": "Get certificates",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "title": "Paginated",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_pages": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "title": "Certificate",
+                    "$ref": "#/definitions/Certificate"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_pagination_argument",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "query",
+            "description": "certificate uid",
+            "required": false,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "job_uid",
+            "in": "query",
+            "description": "job uid",
+            "required": false,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "credential_uid",
+            "in": "query",
+            "description": "credential uid",
+            "required": false,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "issued_date_from",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "issued_date_until",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "and_credential_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters certificates with credentials that contain all of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "or_credential_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters certificates with credentials that contain at least one of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "and_job_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters certificates with jobs that contain all of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "or_job_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters certificates with jobs that contain at least one of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "verification_status",
+            "in": "query",
+            "description": "status",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "field name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc/desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size (0 to return all)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          }
+        ],
+        "tags": [
+          "certificate"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_certificates"
+      }
+    },
+    "/api/credentials": {
+      "post": {
+        "summary": "Create credentials",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Credential"
+            }
+          },
+          "400": {
+            "description": "missing_file_and_metadata",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_file",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "credential details",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "title",
+                "metadata",
+                "tags",
+                "expiry_date"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "title"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {}
+                },
+                "files": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                  }
+                },
+                "credentials": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "title": "uuid",
+                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                  }
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 200
+                  }
+                },
+                "expiry_date": {
+                  "type": "string",
+                  "title": "datetime",
+                  "example": "2020-02-11T15:34:05.814607+00:00"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "create_credentials"
+      },
+      "get": {
+        "summary": "Get all the partner's credentials",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "title": "PaginatedView",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_pages": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/Credential"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_pagination_argument",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "query",
+            "description": "uuid",
+            "required": false,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "upload_date_from",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "upload_date_until",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "and_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters results that contain all of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "or_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters results that contain at least one of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "field name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc/desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size (0 to return all)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_credentials"
+      },
+      "patch": {
+        "summary": "Add new tags to a credential",
+        "description": "Update the tags of several credentials. Expected format is a list of dictionaries, each with the credential uid and a list of new tags.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "404": {
+            "description": "missing_credential",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "updated credential tags",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "credentials"
+              ],
+              "properties": {
+                "credentials": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "credential_uid": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426655440000",
+                        "format": "uuid"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 3
+                        },
+                        "example": [
+                          "tagA",
+                          "tagB",
+                          "tagC"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "patch_credential"
+      },
+      "put": {
+        "summary": "Replace tags from a credential",
+        "description": "Replace the tags of several credentials with new ones. Expected format is a list of dictionaries, each with the credential uid and a list of new tags.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "400": {
+            "description": "invalid_tag",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_credential",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "updated credential tags",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "credentials"
+              ],
+              "properties": {
+                "credentials": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "credential_uid": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426655440000",
+                        "format": "uuid"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 3
+                        },
+                        "example": [
+                          "tagA",
+                          "tagB",
+                          "tagC"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "put_credential"
+      }
+    },
+    "/api/engines": {
+      "get": {
+        "summary": "Get engines",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/EnginePermissions"
+            }
+          }
+        },
+        "tags": [
+          "engine"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_engines"
+      }
+    },
+    "/api/files": {
+      "get": {
+        "summary": "Get all files",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "title": "PaginatedView",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_pages": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/File"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_pagination_argument",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "query",
+            "description": "file id",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "upload_date_from",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "upload_date_until",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "field name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc/desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size (0 to return all)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          }
+        ],
+        "tags": [
+          "file"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_partner_files"
+      },
+      "post": {
+        "summary": "Upload file",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/File"
+            }
+          },
+          "400": {
+            "description": "no_file_on_payload",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "file to be uploaded",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "name": "ignore_duplicated",
+            "in": "formData",
+            "description": "True to ignore duplicated uploaded files",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "file"
+        ],
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "upload_partner_file"
+      }
+    },
+    "/api/ping": {
+      "get": {
+        "summary": "Ping response",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "ping"
+        ],
+        "operationId": "ping"
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "summary": "Get jobs",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "title": "Paginated",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_pages": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "title": "Job",
+                    "$ref": "#/definitions/Job"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_job_status",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_pagination_argument",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "query",
+            "description": "uuid",
+            "required": false,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "status",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start_date_from",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "start_date_until",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "issued_date_from",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "issued_date_until",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "created_date_from",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "created_date_until",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "and_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters results that contain all of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "or_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters results that contain at least one of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "field name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc/desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size (0 to return all)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          }
+        ],
+        "tags": [
+          "job"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_jobs"
+      },
+      "patch": {
+        "summary": "Add new tags to a job",
+        "description": "Update the tags of several jobs. Expected format is a list of dictionaries, each with the credential uid and a list of new tags.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "404": {
+            "description": "missing_job",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "updated job tags",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "jobs"
+              ],
+              "properties": {
+                "jobs": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "job_uid": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426655440000",
+                        "format": "uuid"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 3
+                        },
+                        "example": [
+                          "tagA",
+                          "tagB",
+                          "tagC"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "job"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "patch_job"
+      },
+      "put": {
+        "summary": "Replace tags of a job with new tags",
+        "description": "Replace the tags of several jobs. Expected format is a list of dictionaries, each with the credential uid and a list of new tags.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "404": {
+            "description": "missing_job",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Replace job tags",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "jobs"
+              ],
+              "properties": {
+                "jobs": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "job_uid": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426655440000",
+                        "format": "uuid"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 3
+                        },
+                        "example": [
+                          "tagA",
+                          "tagB",
+                          "tagC"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "job"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "put_job"
+      }
+    },
+    "/api/certificates/{cert_uid}/download": {
+      "get": {
+        "summary": "Download certificate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "404": {
+            "description": "missing_certificate",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cert_uid",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "certificate"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "download_certificate"
+      }
+    },
+    "/api/certificates/{cert_uid}/revoke": {
+      "post": {
+        "summary": "Revoke certificate",
+        "description": "requires admin rights",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "403": {
+            "description": "certificate_already_revoked",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_certificate",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "unconfirmed_certificate_transaction",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "try_again_later",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cert_uid",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "tags": [
+          "certificate",
+          "revoke"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "revoke_certificate"
+      }
+    },
+    "/api/credentials/{cred_uid}/delete_tag": {
+      "patch": {
+        "summary": "delete a credential's tag",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cred_uid",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "minLength": 3
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "delete_credential_tag"
+      }
+    },
+    "/api/verify/credential/{cred_uid}": {
+      "get": {
+        "summary": "Verify by credential UID",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/VerificationResponse"
+            }
+          },
+          "404": {
+            "description": "missing_credential",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_pagination_argument",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cred_uid",
+            "in": "path",
+            "description": "Credential UID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "field name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc/desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size (0 to return all)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "tags": [
+          "verification"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "verify_by_credential_uid"
+      }
+    },
+    "/api/files/{file_id}/attributes": {
+      "get": {
+        "summary": "Get attributes for file",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/File"
+            }
+          },
+          "404": {
+            "description": "missing_file",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "type": "string",
+            "required": true,
+            "description": "file id",
+            "example": "file_id_5998f4893dd69f99d04ec4a7741c7"
+          }
+        ],
+        "tags": [
+          "file"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update file attributes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "404": {
+            "description": "missing_file",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "type": "string",
+            "required": true,
+            "description": "file id",
+            "example": "file_id_5998f4893dd69f99d04ec4a7741c7"
+          },
+          {
+            "name": "attributes",
+            "in": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [],
+              "properties": {
+                "filename": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "file"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ]
+      }
+    },
+    "/api/jobs/{job_uid}/certificates": {
+      "get": {
+        "summary": "Get job certificates",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "title": "Paginated",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_pages": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "title": "Certificate",
+                    "$ref": "#/definitions/Certificate"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_job",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_pagination_argument",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "job_uid",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "and_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters certificates from credentials that contain all of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "or_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters certificates from credentials that contain at least one of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "field name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc/desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size (0 to return all)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          }
+        ],
+        "tags": [
+          "job",
+          "certificate"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_job_certificates"
+      }
+    },
+    "/api/jobs/{job_uid}/credentials": {
+      "get": {
+        "summary": "Get job credentials",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "title": "Paginated",
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_pages": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "title": "Credential",
+                    "$ref": "#/definitions/Credential"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_job",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_pagination_argument",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "job_uid",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "and_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters credentials that contain all of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "or_tags",
+            "in": "query",
+            "description": "tag1,tag2,... (filters credentials that contain at least one of these tags)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "field name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc/desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "page size (0 to return all)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer",
+            "minimum": 0
+          }
+        ],
+        "tags": [
+          "job",
+          "credential"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_job_credentials"
+      }
+    },
+    "/api/credentials/{cred_uid}": {
+      "get": {
+        "summary": "Get individual credential",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Credential"
+            }
+          },
+          "404": {
+            "description": "missing_credential",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cred_uid",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_credential"
+      }
+    },
+    "/api/verify/{cert_uid}": {
+      "get": {
+        "summary": "Verify by UID",
+        "description": "user is required to get the download URL if the file is not public",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/VerificationResponse"
+            }
+          },
+          "404": {
+            "description": "missing_certificate",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cert_uid",
+            "in": "path",
+            "description": "certificate UID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "tags": [
+          "verification"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "verify_by_uid"
+      }
+    },
+    "/api/files/{file_id}": {
+      "get": {
+        "summary": "Download file",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "missing_file",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "type": "string",
+            "required": true,
+            "description": "file id"
+          }
+        ],
+        "tags": [
+          "file"
+        ],
+        "produces": [
+          "application/pdf",
+          "image/png",
+          "image/jpeg"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ]
+      }
+    },
+    "/api/ping/{n}": {
+      "get": {
+        "summary": "Slow ping: ping response after n seconds",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "parameters": [
+          {
+            "name": "n",
+            "in": "path",
+            "description": "number of seconds",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "tags": [
+          "ping"
+        ],
+        "operationId": "slow_ping"
+      }
+    },
+    "/api/jobs/{job_uid}": {
+      "get": {
+        "summary": "Get job",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Job"
+            }
+          },
+          "404": {
+            "description": "missing_job",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "job_uid",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "tags": [
+          "job"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "get_job"
+      }
+    }
+  },
+  "definitions": {
+    "File": {
+      "type": "object",
+      "required": [
+        "id",
+        "file_hash",
+        "filename",
+        "uploaded"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The id of the file",
+          "example": "file_id_056f32ee5cf49404607e368bd8d3f2af"
+        },
+        "file_hash": {
+          "type": "string",
+          "description": "The file hash",
+          "example": "056f32ee5cf49404607e368bd8d3f2af"
+        },
+        "filename": {
+          "type": "string",
+          "description": "The name of the file",
+          "example": "file name"
+        },
+        "uploaded": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.811915+00:00",
+          "description": "The date at which it was uploaded"
+        },
+        "file_type": {
+          "type": "string",
+          "description": "The type of the file",
+          "example": "image/jpeg"
+        }
+      },
+      "description": "A File View to be returned by the API"
+    },
+    "Credential": {
+      "type": "object",
+      "required": [
+        "uid",
+        "title",
+        "metadata",
+        "files",
+        "credentials",
+        "upload_date",
+        "tags"
+      ],
+      "properties": {
+        "uid": {
+          "type": "string",
+          "title": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426655440000",
+          "description": "The credential uid",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "description": "The credential title",
+          "example": "credential title"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {},
+          "description": "Additional data in the credential"
+        },
+        "files": {
+          "type": "array",
+          "title": "Files",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/File"
+          }
+        },
+        "credentials": {
+          "type": "array",
+          "title": "Credentials",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/CircularCredential"
+          }
+        },
+        "upload_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.811954+00:00",
+          "description": "The credential date of creation"
+        },
+        "tags": {
+          "type": "array",
+          "description": "A list of tags to identify the job",
+          "example": [
+            "tagA",
+            "tagB",
+            "tagC"
+          ],
+          "items": {
+            "type": "string",
+            "minLength": 0
+          }
+        },
+        "expiry_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.813229+00:00",
+          "description": "The date of expiry, if it was selected"
+        }
+      },
+      "description": "A Credential View to be returned by the API"
+    },
+    "CircularCredential": {
+      "type": "object",
+      "required": [
+        "uid",
+        "title",
+        "metadata",
+        "files",
+        "credentials",
+        "upload_date",
+        "tags"
+      ],
+      "properties": {
+        "uid": {
+          "type": "string",
+          "title": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426655440000",
+          "description": "The credential uid",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "description": "The credential title",
+          "example": "credential title"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {},
+          "description": "Additional data in the credential"
+        },
+        "files": {
+          "type": "array",
+          "title": "Files",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/File"
+          }
+        },
+        "upload_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.811954+00:00",
+          "description": "The credential date of creation"
+        },
+        "tags": {
+          "type": "array",
+          "description": "A list of tags to identify the job",
+          "example": [
+            "tagA",
+            "tagB",
+            "tagC"
+          ],
+          "items": {
+            "type": "string",
+            "minLength": 0
+          }
+        },
+        "expiry_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.813229+00:00",
+          "description": "The date of expiry, if it was selected"
+        }
+      },
+      "description": "A Credential View to be returned by the API"
+    },
+    "Partner": {
+      "type": "object",
+      "description": "A Partner View to be returned by the API",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The partner id",
+          "example": "vizidox"
+        },
+        "name": {
+          "type": "string",
+          "description": "The partner name",
+          "example": "Vizidox"
+        }
+      }
+    },
+    "EnginePermissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "EnginePermissions",
+        "required": [
+          "name",
+          "is_allowed",
+          "show_prices"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The blockchain engine name",
+            "example": "bitcoin"
+          },
+          "is_allowed": {
+            "type": "boolean",
+            "description": "The partner's access to issuing on the blockchain"
+          },
+          "show_prices": {
+            "type": "boolean",
+            "description": "The partner's access to the currency issuing price"
+          }
+        }
+      },
+      "description": "An Engine Permission View to be returned by the API"
+    },
+    "VerificationStep": {
+      "required": [
+        "name",
+        "description",
+        "status"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the verification step"
+        },
+        "description": {
+          "type": "object",
+          "description": "A description of the result of the verification step",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the result",
+          "enum": [
+            "not_started",
+            "passed",
+            "pending",
+            "failed",
+            "error"
+          ]
+        }
+      },
+      "description": "Represents the result of one verification step"
+    },
+    "VerificationResponse": {
+      "type": "object",
+      "title": "VerificationResponse",
+      "required": [
+        "verification"
+      ],
+      "properties": {
+        "verification": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "description": "The combined result of all verification steps",
+            "$ref": "#/definitions/VerificationStep"
+          }
+        }
+      },
+      "description": "A Verification Response View to be returned by the API"
+    },
+    "VerificationReport": {
+      "type": "object",
+      "title": "VerificationReport",
+      "description": "A Verification Report View to be returned by the API",
+      "required": [
+        "status",
+        "timestamp"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "The status of the full verification",
+          "enum": [
+            "ok",
+            "pending",
+            "expired",
+            "revoked",
+            "failed",
+            "error"
+          ]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "description": "The date of verification",
+          "example": "2020-02-11T15:34:05.813289+00:00"
+        }
+      }
+    },
+    "Claim": {
+      "type": "object",
+      "required": [
+        "uid",
+        "partner",
+        "credential",
+        "issued_date",
+        "signature"
+      ],
+      "properties": {
+        "uid": {
+          "type": "string",
+          "title": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426655440000",
+          "description": "The certificate uid",
+          "format": "uuid"
+        },
+        "partner": {
+          "$ref": "#/definitions/Partner"
+        },
+        "credential": {
+          "$ref": "#/definitions/Credential"
+        },
+        "issued_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.813217+00:00",
+          "description": "The issuing date of the certificate"
+        },
+        "signature": {
+          "type": "string",
+          "description": "The partners signature on the certificate"
+        }
+      },
+      "description": "A Claim View to be returned by the API<br/>A Claim has all data directly related to the issuing Certificate"
+    },
+    "Certificate": {
+      "type": "object",
+      "title": "Certificate",
+      "required": [
+        "certificate"
+      ],
+      "properties": {
+        "certificate": {
+          "$ref": "#/definitions/Claim"
+        },
+        "last_verification": {
+          "$ref": "#/definitions/VerificationReport"
+        }
+      },
+      "description": "A Certificate View to be returned by the API"
+    },
+    "Paginated": {
+      "type": "object",
+      "title": "Paginated",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "description": "The current page",
+          "minimum": 0
+        },
+        "total_pages": {
+          "type": "integer",
+          "description": "Total number of pages",
+          "minimum": 0
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "The number of items per page",
+          "minimum": 0
+        },
+        "total_items": {
+          "type": "integer",
+          "description": "The total number of items obtained from the query",
+          "minimum": 0
+        },
+        "items": {
+          "type": "array",
+          "description": "List of items",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "description": "A Paginated View to be returned by the API"
+    },
+    "Job": {
+      "required": [
+        "uid",
+        "partner",
+        "chain",
+        "tags",
+        "status",
+        "created_date"
+      ],
+      "properties": {
+        "uid": {
+          "type": "string",
+          "title": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426655440000",
+          "description": "The job uid",
+          "format": "uuid"
+        },
+        "partner": {
+          "$ref": "#/definitions/Partner"
+        },
+        "chain": {
+          "type": "string",
+          "description": "The blockchain the Job was issued on",
+          "example": "bitcoin"
+        },
+        "tags": {
+          "type": "array",
+          "description": "A list of tags to identify the job",
+          "items": {
+            "type": "string",
+            "minLength": 3
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the Job",
+          "enum": [
+            "failed",
+            "started",
+            "unconfirmed",
+            "pending",
+            "finished",
+            "scheduled"
+          ]
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.814703+00:00",
+          "description": "The date the Job was started"
+        },
+        "issued_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.814719+00:00",
+          "description": "The date of issuing, if successful"
+        },
+        "finished_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.814731+00:00",
+          "description": "The date of confirmation, if successful"
+        },
+        "failed_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.814743+00:00",
+          "description": "The date of failure, if the issuing failed"
+        },
+        "created_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.814743+00:00",
+          "description": "The date on which the job was created"
+        },
+        "scheduled_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.814743+00:00",
+          "description": "The date on which the job is scheduled to be issued"
+        }
+      },
+      "description": "A Job View to be returned by the API"
+    }
+  },
+  "swagger": "2.0",
+  "securityDefinitions": {
+    "client_auth": {
+      "type": "oauth2",
+      "flow": "application",
+      "tokenUrl": "http://localhost:8181/auth/realms/vizidox/protocol/openid-connect/token"
+    },
+    "user_auth": {
+      "type": "oauth2",
+      "flow": "implicit",
+      "authorizationUrl": "http://localhost:8181/auth/realms/vizidox/protocol/openid-connect/auth"
+    }
+  }
+}
