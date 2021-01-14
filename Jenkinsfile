@@ -1,7 +1,7 @@
 nexus_url = 'https://nexus.morphotech.co.uk/repository/pypi-hosted/'
 sonar_url = 'https://sonar.morphotech.co.uk'
 sonar_project_key = 'vdx-helper'
-sonar_analyzed_dir = 'vdx-helper'
+sonar_analyzed_dir = 'vdx_helper'
 docker_image_tag = "vdx-helper"
 
 pipeline {
