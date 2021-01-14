@@ -32,7 +32,7 @@ pipeline {
         }
         stage('Sonarqube code inspection') {
             steps {
-                sh "docker run -e SONAR_HOST_URL=\"${sonar_url}\" -v \"${WORKSPACE}:/usr/src\"  sonarsource/sonar-scanner-cli:4.4 -X \
+                sh "docker run --rm -e SONAR_HOST_URL=\"${sonar_url}\" -v \"${WORKSPACE}:/usr/src\"  sonarsource/sonar-scanner-cli:4.4 -X \
                 -Dsonar.projectKey=${sonar_project_key}\
                 -Dsonar.login=${env.sonar_account}\
                 -Dsonar.password=${env.sonar_password}\
