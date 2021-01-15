@@ -487,6 +487,27 @@ class VDXHelper:
 
         return None
 
+    def remove_credential_tag(self, cred_uid: UUID, tag: str) -> HTTPStatus:
+        """
+        Send a request to the "Remove Credential Tag" Endpoint
+
+        :param cred_uid: The credential's UID
+        :type cred_uid: UUID
+
+        :param tag: The tag to be removed
+        :type tag: str
+
+        :return: An HTTP Status indicating the result of the endpoint call
+        :rtype: HTTPStatus
+        """
+        response = requests.patch(
+            f"{self.url}/credentials/{cred_uid}/delete_tag",
+            headers=self.header,
+            params={'tag': tag}
+        )
+        status = HTTPStatus(response.status_code)
+        return status
+
     ################## CERTIFICATES #####################
     def verify_by_uid(self, cert_uid: UUID, mapper: Callable[[Json], T] = verification_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
