@@ -161,10 +161,10 @@ class VDXHelper:
 
         return file_summary
 
-    def get_file_attributes(self, core_id: str, mapper: Callable[[Json], T] = file_mapper) -> T:
+    def get_file_attributes(self, file_hash: str, mapper: Callable[[Json], T] = file_mapper) -> T:
 
         response = requests.get(
-            f"{self.url}/files/{core_id}/attributes",
+            f"{self.url}/files/{file_hash}/attributes",
             headers=self.header
         )
 
