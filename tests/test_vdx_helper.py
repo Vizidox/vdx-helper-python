@@ -252,11 +252,11 @@ class VdxHelperTest(unittest.TestCase):
         response = MagicMock()
         requests.get.return_value = response
         response.json.return_value = credential_json
-        cred_uid = '189e4e5c-833d-430b-9baa-5230841d997f'
+        cred_uid = UUID('189e4e5c-833d-430b-9baa-5230841d997f')
 
         # OK case
         response.status_code = HTTPStatus.OK
-        credential = vdx_helper.get_credential(UUID(cred_uid))
+        credential = vdx_helper.get_credential(cred_uid)
         self.assertEqual(credential, mapped_credential)
         self.assertEqual(f"{self.url}/credentials/{cred_uid}", requests.get.call_args[0][0])
 
@@ -264,14 +264,14 @@ class VdxHelperTest(unittest.TestCase):
         credential = None
         response.status_code = HTTPStatus.CONFLICT
         try:
-            credential = vdx_helper.get_credential(UUID(cred_uid))
+            credential = vdx_helper.get_credential(cred_uid)
         except VDXError:
             self.assertIsNone(credential)
             self.assertEqual(f"{self.url}/credentials/{cred_uid}", requests.get.call_args[0][0])
 
         # with json mapper
         response.status_code = HTTPStatus.OK
-        credential = vdx_helper.get_credential(cred_uid=UUID(cred_uid), mapper=get_json_mapper())
+        credential = vdx_helper.get_credential(cred_uid=cred_uid, mapper=get_json_mapper())
         self.assertEqual(f"{self.url}/credentials/{cred_uid}", requests.get.call_args[0][0])
         self.assertDictEqual(credential, credential_json)
 
@@ -286,8 +286,8 @@ class VdxHelperTest(unittest.TestCase):
         title = 'title'
         metadata = {}
         tags = ["example"]
-        core_ids = ['939a9ccb-ddf9-424c-94eb-91898455a968']
-        cred_ids = []
+        core_ids = ['partner_123456789']
+        cred_ids = [UUID('939a9ccb-ddf9-424c-94eb-91898455a968')]
         expiry_date = "2021-01-01T15:34:05.814607+00:00"
 
         # OK case

@@ -118,8 +118,8 @@ class ClientMockServerTest(TestCase):
     def test_get_credential(self, _get_token_string):
         _get_token_string.return_value = "vizidox-authorization"
         vdx_helper = self.get_vdx_helper()
-        cred_uid = '189e4e5c-833d-430b-9baa-5230841d997f'
-        credential = vdx_helper.get_credential(UUID(cred_uid), mapper=custom_credential_mapper)
+        cred_uid = UUID('189e4e5c-833d-430b-9baa-5230841d997f')
+        credential = vdx_helper.get_credential(cred_uid, mapper=custom_credential_mapper)
         assert credential is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
@@ -130,8 +130,8 @@ class ClientMockServerTest(TestCase):
         title = 'title'
         metadata = {}
         tags = ["tagA", "tagB", "tagC"]
-        core_ids = ['939a9ccb-ddf9-424c-94eb-91898455a968']
-        cred_ids = ['123e4567-e89b-12d3-a456-426655440000']
+        core_ids = ['partner_123456789']
+        cred_ids = [UUID('123e4567-e89b-12d3-a456-426655440000')]
         expiry_date = "2020-02-11T15:34:05.814607+00:00"
 
         credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, core_ids=core_ids,
@@ -261,7 +261,7 @@ class ClientMockServerTest(TestCase):
         vdx_helper = self.get_vdx_helper()
         _get_token_string.return_value = "vizidox-authorization"
         engine = 'dogecoin'
-        credentials = ["939a9ccb-ddf9-424c-94eb-91898455a968", "39c7ddcd-f480-48e5-8056-fabf84e7f859"]
+        credentials = [UUID("939a9ccb-ddf9-424c-94eb-91898455a968"), UUID("39c7ddcd-f480-48e5-8056-fabf84e7f859")]
 
         job = vdx_helper.schedule_credentials(engine=engine, credentials=credentials, mapper=custom_job_mapper)
         assert job is not None

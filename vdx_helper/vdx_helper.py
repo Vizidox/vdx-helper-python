@@ -11,6 +11,7 @@ from nndict import nndict
 from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper, \
     verification_mapper, certificate_mapper, currency_mapper
 from vdx_helper.typing import Json
+from vdx_helper.util import optional_uuid_to_string, optional_uuids_to_string, uuids_to_string
 
 T = TypeVar('T')
 
@@ -228,7 +229,7 @@ class VDXHelper:
                         and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
 
         params = nndict(
-            uid=uid,
+            uid=optional_uuid_to_string(uid),
             upload_date_from=start_date,
             upload_date_until=end_date,
             and_tags=and_tags,
@@ -269,13 +270,14 @@ class VDXHelper:
 
         return credential
 
-    def create_credential(self, title: str, metadata: Dicterable, tags: Iterable[str], core_ids: List[str],
-                          cred_ids: List[UUID], expiry_date: Optional[str], mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+    def create_credential(self, title: str, metadata: Dicterable, tags: Optional[Iterable[str]] = None,
+                          core_ids: Optional[List[str]] = None, cred_ids: List[UUID] = None,
+                          expiry_date: Optional[str] = None, mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
         payload = nndict(
             title=title,
             files=core_ids,
-            credentials=cred_ids,
-            tags=list(set(tags)),
+            credentials=optional_uuids_to_string(cred_ids),
+            tags=list(set(tags)) if tags is not None else None,
             expiry_date=expiry_date
         )
         payload_json = {**payload, "metadata": dict(metadata)}
@@ -329,7 +331,15 @@ class VDXHelper:
         return
 
     def delete_credential_tag(self, cred_uid: UUID, tag: str) -> None:
+        """
+        Send a request to the "Delete Credential Tag" Endpoint
 
+        :param cred_uid: The credential's UID
+        :type cred_uid: UUID
+
+        :param tag: The tag to be deleted
+        :type tag: str
+        """
         params = nndict(
             tag=tag
         )
@@ -343,14 +353,12 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return
-
     def schedule_credentials(self, engine: str, credentials: List[UUID],
                              mapper: Callable[[Json], T] = job_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         payload: Json = {
             "engine": engine,
-            "credentials": credentials
+            "credentials": uuids_to_string(credentials)
         }
 
         response = requests.post(
@@ -412,7 +420,7 @@ class VDXHelper:
                  and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
 
         params = nndict(
-            uid=uid,
+            uid=optional_uuid_to_string(uid),
             status=job_status,
             issued_date_from=start_date,
             issued_date_until=end_date,
@@ -558,9 +566,9 @@ class VDXHelper:
                          verification_status: Optional[str] = None, **pagination) -> T:
 
         params = nndict(
-            uid=uid,
-            job_uid=job_uid,
-            credential_uid=cred_uid,
+            uid=optional_uuid_to_string(uid),
+            job_uid=optional_uuid_to_string(job_uid),
+            credential_uid=optional_uuid_to_string(cred_uid),
             issued_date_from=start_date,
             issued_date_until=end_date,
             and_credential_tags=and_credential_tags,
