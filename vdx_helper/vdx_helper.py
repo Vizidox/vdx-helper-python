@@ -132,7 +132,6 @@ class VDXHelper:
 
     ################## FILES #####################
     def upload_file(self,
-                    filename: str,
                     file_stream: BinaryIO,
                     file_content_type: str,
                     ignore_duplicated: bool = False,
@@ -140,7 +139,7 @@ class VDXHelper:
         file_stream.seek(0)
 
         payload = {
-            "file": (filename, file_stream, file_content_type),
+            "file": (file_stream, file_content_type),
         }
         form_data = {
             "ignore_duplicated": ignore_duplicated
@@ -178,33 +177,11 @@ class VDXHelper:
 
         return file
 
-    def update_file_attributes(self, core_id: str, filename: str) -> None:
-
-        payload = {
-            "filename": filename
-        }
-
-        response = requests.put(
-            f"{self.url}/files/{core_id}/attributes",
-            headers=self.header,
-            json=payload
-        )
-
-        status = HTTPStatus(response.status_code)
-
-        if status is not HTTPStatus.OK:
-            raise error_from_response(status, response)
-
-        return
-
     def get_files(self, mapper: Callable[[Json], T] = get_paginated_mapper(file_mapper),
-                  upload_date_from: Optional[datetime] = None, upload_date_until: Optional[datetime] = None,
-                  file_id: Optional[str] = None, **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
+                  file_hash: Optional[str] = None, **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
 
         params = nndict(
-            upload_date_from=upload_date_from,
-            upload_date_until=upload_date_until,
-            file_id=file_id,
+            file_hash=file_hash,
             **pagination
         )
 
@@ -271,11 +248,11 @@ class VDXHelper:
         return credential
 
     def create_credential(self, title: str, metadata: Dicterable, tags: Optional[Iterable[str]] = None,
-                          core_ids: Optional[List[str]] = None, cred_ids: List[UUID] = None,
+                          file_hashes: Optional[List[str]] = None, cred_ids: List[UUID] = None,
                           expiry_date: Optional[str] = None, mapper: Callable[[Json], T] = credential_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
         payload = nndict(
             title=title,
-            files=core_ids,
+            files=file_hashes,
             credentials=optional_uuids_to_string(cred_ids),
             tags=list(set(tags)) if tags is not None else None,
             expiry_date=expiry_date
