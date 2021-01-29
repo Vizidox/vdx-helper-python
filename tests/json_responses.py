@@ -26,10 +26,7 @@ mapped_engine_permissions = [EnginePermissionsView(name="bitcoin", is_allowed=Tr
                              EnginePermissionsView(name="dogecoin", is_allowed=False, show_prices=False)]
 
 file_json = {
-    "id": "123",
     "file_hash": "hash",
-    "filename": "name",
-    "uploaded": "2020-01-01T10:29:28.977178+00:00",
     "file_type": "type"
 }
 
