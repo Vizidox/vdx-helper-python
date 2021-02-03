@@ -26,10 +26,7 @@ mapped_engine_permissions = [EnginePermissionsView(name="bitcoin", is_allowed=Tr
                              EnginePermissionsView(name="dogecoin", is_allowed=False, show_prices=False)]
 
 file_json = {
-    "id": "123",
     "file_hash": "hash",
-    "filename": "name",
-    "uploaded": "2020-01-01T10:29:28.977178+00:00",
     "file_type": "type"
 }
 
@@ -41,8 +38,7 @@ paginated_file = {
     "items": [file_json]
 }
 
-mapped_file = FileView(id="123", file_hash="hash", filename="name",
-                       uploaded=datetime.fromisoformat("2020-01-01T10:29:28.977178+00:00"), file_type="type")
+mapped_file = FileView(file_hash="hash", file_type="type")
 
 mapped_paginated_file = PaginatedView(page=1, total_pages=1, per_page=20, total_items=1,
                                       items=[mapped_file])

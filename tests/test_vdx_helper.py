@@ -159,7 +159,6 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         # file
-        filename = "name"
         stream = MagicMock()
         content_type = "content_type"
 
@@ -169,52 +168,27 @@ class VdxHelperTest(unittest.TestCase):
 
         # OK status
         response.status_code = HTTPStatus.OK
-        file_summary = vdx_helper.upload_file(filename, stream, content_type)
+        file_summary = vdx_helper.upload_file(stream, content_type)
         self.assertEqual(file_summary, mapped_file)
         file_info = requests.post.call_args[1]['files']['file']
-        self.assertEqual(file_info[0], "name")
-        self.assertEqual(file_info[2], "content_type")
+        self.assertEqual(file_info[1], "content_type")
 
         # not OK status
         file_summary = None
         response.status_code = HTTPStatus.CONFLICT
         try:
-            file_summary = vdx_helper.upload_file(filename, stream, content_type)
+            file_summary = vdx_helper.upload_file(stream, content_type)
         except VDXError:
             self.assertIsNone(file_summary)
             file_info = requests.post.call_args[1]['files']['file']
-            self.assertEqual(file_info[0], "name")
-            self.assertEqual(file_info[2], "content_type")
+            self.assertEqual(file_info[1], "content_type")
 
         # json mapper
         response.status_code = HTTPStatus.OK
-        json_result = vdx_helper.upload_file(filename, stream, content_type, mapper=get_json_mapper())
+        json_result = vdx_helper.upload_file(stream, content_type, mapper=get_json_mapper())
         self.assertDictEqual(json_result, file_json)
         file_info = requests.post.call_args[1]['files']['file']
-        self.assertEqual(file_info[0], "name")
-        self.assertEqual(file_info[2], "content_type")
-
-    @patch('vdx_helper.vdx_helper.VDXHelper.header')
-    @patch('vdx_helper.vdx_helper.requests')
-    def test_update_file_attributes(self, requests, header):
-        vdx_helper = self.get_vdx_helper()
-        response = MagicMock()
-        filename = 'new_name'
-        core_id = "core_id"
-
-        # response
-        response.status_code = HTTPStatus.OK
-        requests.put.return_value = response
-
-        vdx_helper.update_file_attributes(core_id=core_id, filename=filename)
-        self.assertEqual(f"{self.url}/files/{core_id}/attributes", requests.put.call_args[0][0])
-
-        # invalid ID
-        response.status_code = HTTPStatus.NOT_FOUND
-        try:
-            vdx_helper.update_file_attributes(core_id=core_id, filename=filename)
-        except VDXError:
-            self.assertEqual(f"{self.url}/files/{core_id}/attributes", requests.put.call_args[0][0])
+        self.assertEqual(file_info[1], "content_type")
 
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
@@ -286,13 +260,13 @@ class VdxHelperTest(unittest.TestCase):
         title = 'title'
         metadata = {}
         tags = ["example"]
-        core_ids = ['partner_123456789']
+        file_hashes = ['123456789']
         cred_ids = [UUID('939a9ccb-ddf9-424c-94eb-91898455a968')]
         expiry_date = "2021-01-01T15:34:05.814607+00:00"
 
         # OK case
         response.status_code = HTTPStatus.OK
-        credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, core_ids=core_ids,
+        credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, file_hashes=file_hashes,
                                                   cred_ids=cred_ids, expiry_date=expiry_date)
         self.assertEqual(credential, mapped_credential)
         self.assertEqual(f"{self.url}/credentials", requests.post.call_args[0][0])
@@ -301,7 +275,7 @@ class VdxHelperTest(unittest.TestCase):
         credential = None
         response.status_code = HTTPStatus.CONFLICT
         try:
-            credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, core_ids=core_ids,
+            credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, file_hashes=file_hashes,
                                                       cred_ids=cred_ids, expiry_date=expiry_date)
         except VDXError:
             self.assertIsNone(credential)
@@ -309,7 +283,7 @@ class VdxHelperTest(unittest.TestCase):
 
         # with json mapper
         response.status_code = HTTPStatus.OK
-        credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, core_ids=core_ids,
+        credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, file_hashes=file_hashes,
                                                   cred_ids=cred_ids, expiry_date=expiry_date, mapper=get_json_mapper())
         self.assertEqual(f"{self.url}/credentials", requests.post.call_args[0][0])
         self.assertDictEqual(credential, credential_json)
@@ -735,26 +709,26 @@ class VdxHelperTest(unittest.TestCase):
         response = MagicMock()
         requests.get.return_value = response
         response.json.return_value = file_json
-        file_id = "hello_this_is_file_id"
+        file_hash = "123456789"
         # OK status
         response.status_code = HTTPStatus.OK
-        file_attributes = vdx_helper.get_file_attributes(core_id=file_id)
+        file_attributes = vdx_helper.get_file_attributes(file_hash=file_hash)
         self.assertEqual(mapped_file, file_attributes)
-        self.assertEqual(f"{self.url}/files/{file_id}/attributes", requests.get.call_args[0][0])
+        self.assertEqual(f"{self.url}/files/{file_hash}/attributes", requests.get.call_args[0][0])
 
         # not OK status
         file_attributes = None
         response.status_code = HTTPStatus.CONFLICT
         try:
-            file_attributes = vdx_helper.get_file_attributes(core_id=file_id)
+            file_attributes = vdx_helper.get_file_attributes(file_hash=file_hash)
         except VDXError:
             self.assertIsNone(file_attributes)
-            self.assertEqual(f"{self.url}/files/{file_id}/attributes", requests.get.call_args[0][0])
+            self.assertEqual(f"{self.url}/files/{file_hash}/attributes", requests.get.call_args[0][0])
 
         # with custom mapper
         response.status_code = HTTPStatus.OK
-        file_attributes = vdx_helper.get_file_attributes(core_id=file_id, mapper=get_json_mapper())
-        self.assertEqual(f"{self.url}/files/{file_id}/attributes", requests.get.call_args[0][0])
+        file_attributes = vdx_helper.get_file_attributes(file_hash=file_hash, mapper=get_json_mapper())
+        self.assertEqual(f"{self.url}/files/{file_hash}/attributes", requests.get.call_args[0][0])
         self.assertDictEqual(file_attributes, file_json)
 
     @patch('vdx_helper.vdx_helper.requests')

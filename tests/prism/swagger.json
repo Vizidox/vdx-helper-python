@@ -1,6 +1,6 @@
 {
   "info": {
-    "version": "5.6.0-dev",
+    "version": "6.0.0",
     "title": "vizidox",
     "description": "",
     "termsOfService": "/tos"
@@ -214,8 +214,8 @@
               }
             }
           },
-          "409": {
-            "description": "credential_already_scheduled_or_issued",
+          "422": {
+            "description": "wrong_blockchain_engine",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -233,8 +233,8 @@
               }
             }
           },
-          "422": {
-            "description": "wrong_blockchain_engine",
+          "409": {
+            "description": "credential_already_scheduled_or_issued",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -718,7 +718,7 @@
             }
           },
           "400": {
-            "description": "missing_file_and_metadata",
+            "description": "missing_file_and_metadata or invalid_value",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -780,10 +780,11 @@
                   "additionalProperties": {}
                 },
                 "files": {
+                  "description": "List of file hashes to add to the credential",
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                    "example": "123456789"
                   }
                 },
                 "credentials": {
@@ -1248,27 +1249,12 @@
         },
         "parameters": [
           {
-            "name": "file_id",
+            "name": "file_hash",
             "in": "query",
-            "description": "file id",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "upload_date_from",
-            "in": "query",
-            "description": "YYYY-MM-DD",
+            "description": "file hash",
             "required": false,
             "type": "string",
-            "format": "date-time"
-          },
-          {
-            "name": "upload_date_until",
-            "in": "query",
-            "description": "YYYY-MM-DD",
-            "required": false,
-            "type": "string",
-            "format": "date-time"
+            "example": "5998f4893dd69f99d04ec4a7741c7"
           },
           {
             "name": "sort_by",
@@ -1943,7 +1929,7 @@
     },
     "/api/credentials/{cred_uid}/delete_tag": {
       "patch": {
-        "summary": "delete a credential's tag",
+        "summary": "Delete a credential's tag",
         "responses": {
           "200": {
             "description": "OK",
@@ -1985,6 +1971,130 @@
           }
         ],
         "operationId": "delete_credential_tag"
+      }
+    },
+    "/api/credentials/{cred_uid}/revoke/{engine}": {
+      "post": {
+        "summary": "Revoke certificate using credential id",
+        "description": "requires admin rights",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "403": {
+            "description": "certificate_already_revoked",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_credential | missing_certificate_by_credential",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "unconfirmed_certificate_transaction",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "try_again_later",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cred_uid",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "engine",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "certificate",
+          "credential",
+          "revoke"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "revoke_certificate_by_credential"
       }
     },
     "/api/verify/credential/{cred_uid}": {
@@ -2090,7 +2200,7 @@
         "operationId": "verify_by_credential_uid"
       }
     },
-    "/api/files/{file_id}/attributes": {
+    "/api/files/{file_hash}/attributes": {
       "get": {
         "summary": "Get attributes for file",
         "responses": {
@@ -2122,81 +2232,12 @@
         },
         "parameters": [
           {
-            "name": "file_id",
+            "name": "file_hash",
             "in": "path",
             "type": "string",
             "required": true,
-            "description": "file id",
-            "example": "file_id_5998f4893dd69f99d04ec4a7741c7"
-          }
-        ],
-        "tags": [
-          "file"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "security": [
-          {
-            "client_auth": [
-              ""
-            ]
-          }
-        ]
-      },
-      "put": {
-        "summary": "Update file attributes",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {}
-            }
-          },
-          "404": {
-            "description": "missing_file",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "file_id",
-            "in": "path",
-            "type": "string",
-            "required": true,
-            "description": "file id",
-            "example": "file_id_5998f4893dd69f99d04ec4a7741c7"
-          },
-          {
-            "name": "attributes",
-            "in": "body",
-            "description": "",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [],
-              "properties": {
-                "filename": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "file hash",
+            "example": "5998f4893dd69f99d04ec4a7741c7"
           }
         ],
         "tags": [
@@ -2621,59 +2662,6 @@
         "operationId": "verify_by_uid"
       }
     },
-    "/api/files/{file_id}": {
-      "get": {
-        "summary": "Download file",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "missing_file",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "file_id",
-            "in": "path",
-            "type": "string",
-            "required": true,
-            "description": "file id"
-          }
-        ],
-        "tags": [
-          "file"
-        ],
-        "produces": [
-          "application/pdf",
-          "image/png",
-          "image/jpeg"
-        ],
-        "security": [
-          {
-            "client_auth": [
-              ""
-            ]
-          }
-        ]
-      }
-    },
     "/api/ping/{n}": {
       "get": {
         "summary": "Slow ping: ping response after n seconds",
@@ -2758,33 +2746,14 @@
     "File": {
       "type": "object",
       "required": [
-        "id",
         "file_hash",
-        "filename",
         "uploaded"
       ],
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "The id of the file",
-          "example": "file_id_056f32ee5cf49404607e368bd8d3f2af"
-        },
         "file_hash": {
           "type": "string",
           "description": "The file hash",
           "example": "056f32ee5cf49404607e368bd8d3f2af"
-        },
-        "filename": {
-          "type": "string",
-          "description": "The name of the file",
-          "example": "file name"
-        },
-        "uploaded": {
-          "type": "string",
-          "format": "date",
-          "title": "datetime",
-          "example": "2020-02-11T15:34:05.811915+00:00",
-          "description": "The date at which it was uploaded"
         },
         "file_type": {
           "type": "string",
