@@ -98,15 +98,6 @@ class ClientMockServerTest(TestCase):
         assert file_summary is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
-    def test_update_file_attributes(self, _get_token_string):
-        _get_token_string.return_value = "vizidox-authorization"
-        vdx_helper = self.get_vdx_helper()
-        filename = 'new_name'
-        core_id = "core_id"
-
-        vdx_helper.update_file_attributes(core_id=core_id, filename=filename)
-
-    @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
     def test_get_credentials(self, _get_token_string):
         _get_token_string.return_value = "vizidox-authorization"
         vdx_helper = self.get_vdx_helper()
@@ -130,11 +121,11 @@ class ClientMockServerTest(TestCase):
         title = 'title'
         metadata = {}
         tags = ["tagA", "tagB", "tagC"]
-        core_ids = ['partner_123456789']
+        file_hashes = ['123456789']
         cred_ids = [UUID('123e4567-e89b-12d3-a456-426655440000')]
         expiry_date = "2020-02-11T15:34:05.814607+00:00"
 
-        credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, core_ids=core_ids,
+        credential = vdx_helper.create_credential(title=title, tags=tags, metadata=metadata, file_hashes=file_hashes,
                                                   cred_ids=cred_ids, expiry_date=expiry_date, mapper=custom_credential_mapper)
         assert credential is not None
 
@@ -270,8 +261,8 @@ class ClientMockServerTest(TestCase):
     def test_get_file_attributes(self, _get_token_string):
         vdx_helper = self.get_vdx_helper()
         _get_token_string.return_value = "vizidox-authorization"
-        file_id = "hello_this_is_file_id"
-        file = vdx_helper.get_file_attributes(core_id=file_id)
+        file_hash = "123456789"
+        file = vdx_helper.get_file_attributes(file_hash=file_hash)
         assert file is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')

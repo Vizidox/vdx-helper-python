@@ -47,10 +47,7 @@ def currency_mapper(json: Json) -> CurrencyAmountView:
 
 def file_mapper(json: Json) -> FileView:
     return FileView(
-        id=json["id"],
         file_hash=json["file_hash"],
-        filename=json["filename"],
-        uploaded=datetime.fromisoformat(json["uploaded"]),
         file_type=json["file_type"]
     )
 

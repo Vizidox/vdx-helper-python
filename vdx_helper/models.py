@@ -109,41 +109,21 @@ class FileView(NamedTuple):
     A File View to be returned by the API
     ---
     required:
-    - id
     - file_hash
-    - filename
-    - uploaded
     properties:
-      id:
-        type: string
-        description: 'The id of the file'
       file_hash:
         type: string
         description: 'The file hash'
-      filename:
-        type: string
-        description: 'The name of the file'
-      uploaded:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.811915+00:00'
-        description: 'The date at which it was uploaded'
       file_type:
         type: string
         description: 'The type of the file'
     """
-    id: str
     file_hash: str
-    filename: str
-    uploaded: datetime
     file_type: Optional[str]
 
     def __eq__(self, obj: 'FileView'):
         return isinstance(obj, FileView) \
-               and obj.id == self.id \
                and obj.file_hash == self.file_hash \
-               and obj.filename == self.filename \
-               and obj.uploaded == self.uploaded \
                and obj.file_type == self.file_type
 
 
