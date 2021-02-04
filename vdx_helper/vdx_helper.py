@@ -132,7 +132,6 @@ class VDXHelper:
 
     ################## FILES #####################
     def upload_file(self,
-                    filename: str,
                     file_stream: BinaryIO,
                     file_content_type: str,
                     ignore_duplicated: bool = False,
@@ -140,7 +139,7 @@ class VDXHelper:
         file_stream.seek(0)
 
         payload = {
-            "file": (filename, file_stream, file_content_type),
+            "file": ("filename", file_stream, file_content_type),
         }
         form_data = {
             "ignore_duplicated": ignore_duplicated
