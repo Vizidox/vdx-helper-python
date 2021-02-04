@@ -171,7 +171,7 @@ class VdxHelperTest(unittest.TestCase):
         file_summary = vdx_helper.upload_file(stream, content_type)
         self.assertEqual(file_summary, mapped_file)
         file_info = requests.post.call_args[1]['files']['file']
-        self.assertEqual(file_info[1], "content_type")
+        self.assertEqual(file_info[2], content_type)
 
         # not OK status
         file_summary = None
@@ -181,14 +181,14 @@ class VdxHelperTest(unittest.TestCase):
         except VDXError:
             self.assertIsNone(file_summary)
             file_info = requests.post.call_args[1]['files']['file']
-            self.assertEqual(file_info[1], "content_type")
+            self.assertEqual(file_info[2], content_type)
 
         # json mapper
         response.status_code = HTTPStatus.OK
         json_result = vdx_helper.upload_file(stream, content_type, mapper=get_json_mapper())
         self.assertDictEqual(json_result, file_json)
         file_info = requests.post.call_args[1]['files']['file']
-        self.assertEqual(file_info[1], "content_type")
+        self.assertEqual(file_info[2], content_type)
 
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
