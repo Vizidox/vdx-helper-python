@@ -133,13 +133,12 @@ class VDXHelper:
     ################## FILES #####################
     def upload_file(self,
                     file_stream: BinaryIO,
-                    file_content_type: str,
                     ignore_duplicated: bool = False,
                     mapper: Callable[[Json], T] = file_mapper) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
         file_stream.seek(0)
 
         payload = {
-            "file": (file_stream, file_content_type),
+            "file": (file_stream),
         }
         form_data = {
             "ignore_duplicated": ignore_duplicated
