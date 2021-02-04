@@ -159,7 +159,6 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         # file
-        name = "file_name"
         stream = MagicMock()
         content_type = "content_type"
 
@@ -169,7 +168,7 @@ class VdxHelperTest(unittest.TestCase):
 
         # OK status
         response.status_code = HTTPStatus.OK
-        file_summary = vdx_helper.upload_file(name, stream, content_type)
+        file_summary = vdx_helper.upload_file(stream, content_type)
         self.assertEqual(file_summary, mapped_file)
         file_info = requests.post.call_args[1]['files']['file']
         self.assertEqual(file_info[1], "content_type")
@@ -178,7 +177,7 @@ class VdxHelperTest(unittest.TestCase):
         file_summary = None
         response.status_code = HTTPStatus.CONFLICT
         try:
-            file_summary = vdx_helper.upload_file(name, stream, content_type)
+            file_summary = vdx_helper.upload_file(stream, content_type)
         except VDXError:
             self.assertIsNone(file_summary)
             file_info = requests.post.call_args[1]['files']['file']
@@ -186,7 +185,7 @@ class VdxHelperTest(unittest.TestCase):
 
         # json mapper
         response.status_code = HTTPStatus.OK
-        json_result = vdx_helper.upload_file(name, stream, content_type, mapper=get_json_mapper())
+        json_result = vdx_helper.upload_file(stream, content_type, mapper=get_json_mapper())
         self.assertDictEqual(json_result, file_json)
         file_info = requests.post.call_args[1]['files']['file']
         self.assertEqual(file_info[1], "content_type")
