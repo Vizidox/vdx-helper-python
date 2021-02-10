@@ -83,7 +83,7 @@ job_json = {
     "tags": [
         "tag1"
     ],
-    "status": 5,
+    "status": JobStatus.scheduled.name,
     "created_date": "2020-11-13T11:30:00.790190+00:00",
     "scheduled_date": "2020-11-13T12:00:00+00:00"
 }
@@ -122,7 +122,7 @@ verification_response_json = {
                 "actual_hash": "d08f0971320c1cb70dcff0f5356bf8cd90ce4d03b4e13b9c82137c4ab1a3e659",
                 "expected_hash": "d08f0971320c1cb70dcff0f5356bf8cd90ce4d03b4e13b9c82137c4ab1a3e659"
             },
-            "status": 1
+            "status": StepStatus.passed.name
         },
         {
             "name": "Checking revocation date",
@@ -131,7 +131,7 @@ verification_response_json = {
                 "revocation_address_url": "https://chain.so/address/BTCTEST/myWUoZBBiMyBLHWKtNayfgduUWFed6bzCi",
                 "revocation_date": None
             },
-            "status": 3
+            "status": StepStatus.failed.name
         }
     ]
 }
@@ -162,7 +162,7 @@ certificate_json = {
         "signature": "signature"
     },
     "last_verification": {
-        "status": 5,
+        "status": VerificationStatus.ok.name,
         "timestamp": "2020-02-11T15:34:05.813289+00:00"
     }
 }
