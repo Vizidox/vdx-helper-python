@@ -249,23 +249,23 @@ class VerificationStatus(Enum):
     """
     A representation of all possible verification status
     """
-    ok = 5
-    pending = 4
-    expired = 3
-    revoked = 2
-    failed = 1
-    error = 0
+    ok = 'ok'
+    pending = 'pending'
+    expired = 'expired'
+    revoked = 'revoked'
+    failed = 'failed'
+    error = 'error'
 
 
 class StepStatus(Enum):
     """
     A representation of all status of a verification step
     """
-    not_started = 0
-    passed = 1
-    pending = 2
-    failed = 3
-    error = 4
+    not_started = 'not_started'
+    passed = 'passed'
+    pending = 'pending'
+    failed = 'failed'
+    error = 'error'
 
 
 class VerificationStepResult(NamedTuple):
@@ -382,12 +382,12 @@ class JobStatus(Enum):
     """
     A representation of all possible status of a Job
     """
-    failed = 0
-    started = 1
-    unconfirmed = 2
-    pending = 3
-    finished = 4
-    scheduled = 5
+    failed = 'failed'
+    started = 'started'
+    unconfirmed = 'unconfirmed'
+    pending = 'pending'
+    finished = 'finished'
+    scheduled = 'scheduled'
 
 
 class JobView(NamedTuple):

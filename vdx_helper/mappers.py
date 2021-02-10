@@ -71,7 +71,7 @@ def job_mapper(json: Json) -> JobView:
         partner=partner_mapper(json["partner"]),
         chain=json["chain"],
         tags=json["tags"],
-        status=JobStatus(int(json["status"])),
+        status=JobStatus(json["status"]),
         created_date=optional_datetime_from_string(json.get("created_date")),
         start_date=optional_datetime_from_string(json.get("start_date")),
         issued_date=optional_datetime_from_string(json.get("issued_date")),
@@ -91,7 +91,7 @@ def verification_step_mapper(json: Json) -> VerificationStepResult:
     return VerificationStepResult(
         name=json["name"],
         description=json["description"],
-        status=StepStatus(int(json["status"]))
+        status=StepStatus(json["status"])
     )
 
 
@@ -120,6 +120,6 @@ def certificate_mapper(json: Json) -> CertificateView:
 
 def verification_report_mapper(json: Json) -> VerificationReport:
     return VerificationReport(
-        status=VerificationStatus(int(json["status"])),
+        status=VerificationStatus(json["status"]),
         timestamp=datetime.fromisoformat(json["timestamp"])
     )
