@@ -113,28 +113,6 @@ mapped_job = JobView(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
 mapped_paginated_job = PaginatedView(page=1, total_pages=1, per_page=20, total_items=1,
                                      items=[mapped_job])
 
-verification_response_json = {
-    "verification": [
-        {
-            "name": "Checking certificate integrity",
-            "description": {
-                "hash_function": "SHA256",
-                "actual_hash": "d08f0971320c1cb70dcff0f5356bf8cd90ce4d03b4e13b9c82137c4ab1a3e659",
-                "expected_hash": "d08f0971320c1cb70dcff0f5356bf8cd90ce4d03b4e13b9c82137c4ab1a3e659"
-            },
-            "status": StepStatus.passed.name
-        },
-        {
-            "name": "Checking revocation date",
-            "description": {
-                "revocation_address": "myWUoZBBiMyBLHWKtNayfgduUWFed6bzCi",
-                "revocation_address_url": "https://chain.so/address/BTCTEST/myWUoZBBiMyBLHWKtNayfgduUWFed6bzCi",
-                "revocation_date": None
-            },
-            "status": StepStatus.failed.name
-        }
-    ]
-}
 mapped_verification_step_1 = VerificationStepResult(name='Checking certificate integrity',
                                                     description={
                                                         "hash_function": "SHA256",
@@ -151,7 +129,33 @@ mapped_verification_step_2 = VerificationStepResult(name='Checking revocation da
                                                     },
                                                     status=StepStatus.failed)
 
-mapped_verification = VerificationResponseView([mapped_verification_step_1, mapped_verification_step_2])
+
+mapped_verification_report = VerificationReport(status=VerificationStatus.ok,
+                                                timestamp=datetime.fromisoformat("2020-02-11T15:34:05.813289+00:00"))
+
+verification_result_json = {
+        "status": mapped_verification_report.status.name,
+        "timestamp": mapped_verification_report.timestamp.isoformat()
+    }
+
+verification_response_json = {
+    "verification": [
+        {
+            "name": mapped_verification_step_1.name,
+            "description": mapped_verification_step_1.description,
+            "status": mapped_verification_step_1.status.name
+        },
+        {
+            "name": mapped_verification_step_2.name,
+            "description": mapped_verification_step_2.description,
+            "status": mapped_verification_step_2.status.name
+        }
+    ],
+    "result": verification_result_json
+}
+
+mapped_verification = VerificationResponseView([mapped_verification_step_1, mapped_verification_step_2],
+                                               mapped_verification_report)
 
 certificate_json = {
     "certificate": {
@@ -161,10 +165,7 @@ certificate_json = {
         "issued_date": "2020-02-11T15:34:05.813217+00:00",
         "signature": "signature"
     },
-    "last_verification": {
-        "status": VerificationStatus.ok.name,
-        "timestamp": "2020-02-11T15:34:05.813289+00:00"
-    }
+    "last_verification": verification_result_json
 }
 
 paginated_certificate = {
@@ -180,8 +181,7 @@ mapped_claim = ClaimView(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
                          credential=mapped_credential,
                          issued_date=datetime.fromisoformat("2020-02-11T15:34:05.813217+00:00"),
                          signature='signature')
-mapped_verification_report = VerificationReport(status=VerificationStatus.ok,
-                                                timestamp=datetime.fromisoformat("2020-02-11T15:34:05.813289+00:00"))
+
 mapped_certificate = CertificateView(certificate=mapped_claim, last_verification=mapped_verification_report)
 
 mapped_paginated_certificate = PaginatedView(page=1, total_pages=1, per_page=20, total_items=1,
