@@ -13,22 +13,22 @@ T = TypeVar('T')
 
 
 def get_paginated_mapper(mapper: Callable[[Json], T]) -> Callable[[Json], 'PaginatedView[T]']:
-    def paginated_mapper(json: Json) -> 'PaginatedView[T]':
+    def paginated_mapper(json_: Json) -> 'PaginatedView[T]':
         paginated_view = PaginatedView(
-            page=int(json["page"]),
-            total_pages=int(json["total_pages"]),
-            per_page=int(json["per_page"]),
-            total_items=int(json["total_items"]),
-            items=[mapper(json_item) for json_item in json["items"]]
+            page=int(json_["page"]),
+            total_pages=int(json_["total_pages"]),
+            per_page=int(json_["per_page"]),
+            total_items=int(json_["total_items"]),
+            items=[mapper(json_item) for json_item in json_["items"]]
         )
         return paginated_view
 
     return paginated_mapper
 
 
-def permissions_mapper(json: Json) -> List[EnginePermissionsView]:
+def permissions_mapper(json_: Json) -> List[EnginePermissionsView]:
     permission_views = list()
-    for json_permission in json:
+    for json_permission in json_:
         permission = EnginePermissionsView(
             name=json_permission['name'],
             is_allowed=loads(json_permission['is_allowed']),
@@ -38,88 +38,89 @@ def permissions_mapper(json: Json) -> List[EnginePermissionsView]:
     return permission_views
 
 
-def currency_mapper(json: Json) -> CurrencyAmountView:
+def currency_mapper(json_: Json) -> CurrencyAmountView:
     return CurrencyAmountView(
-        amount=json["amount"],
-        currency=json["currency"]
+        amount=json_["amount"],
+        currency=json_["currency"]
     )
 
 
-def file_mapper(json: Json) -> FileView:
+def file_mapper(json_: Json) -> FileView:
     return FileView(
-        file_hash=json["file_hash"],
-        file_type=json["file_type"]
+        file_hash=json_["file_hash"],
+        file_type=json_["file_type"]
     )
 
 
-def credential_mapper(json: Json) -> CredentialView:
+def credential_mapper(json_: Json) -> CredentialView:
     return CredentialView(
-        uid=UUID(json["uid"]),
-        title=json["title"],
-        metadata=json["metadata"],
-        files=[file_mapper(file) for file in json["files"]],
-        credentials=[credential_mapper(credential) for credential in json["credentials"]],
-        upload_date=datetime.fromisoformat(json["upload_date"]),
-        tags=json["tags"],
-        expiry_date=optional_datetime_from_string(json["expiry_date"])
+        uid=UUID(json_["uid"]),
+        title=json_["title"],
+        metadata=json_["metadata"],
+        files=[file_mapper(file) for file in json_["files"]],
+        credentials=[credential_mapper(credential) for credential in json_["credentials"]],
+        upload_date=datetime.fromisoformat(json_["upload_date"]),
+        tags=json_["tags"],
+        expiry_date=optional_datetime_from_string(json_["expiry_date"])
     )
 
 
-def job_mapper(json: Json) -> JobView:
+def job_mapper(json_: Json) -> JobView:
     return JobView(
-        uid=UUID(json["uid"]),
-        partner=partner_mapper(json["partner"]),
-        chain=json["chain"],
-        tags=json["tags"],
-        status=JobStatus(json["status"]),
-        created_date=optional_datetime_from_string(json.get("created_date")),
-        start_date=optional_datetime_from_string(json.get("start_date")),
-        issued_date=optional_datetime_from_string(json.get("issued_date")),
-        finished_date=optional_datetime_from_string(json.get("finished_date")),
-        failed_date=optional_datetime_from_string(json.get("failed_date")),
-        scheduled_date=optional_datetime_from_string(json.get("scheduled_date"))
+        uid=UUID(json_["uid"]),
+        partner=partner_mapper(json_["partner"]),
+        chain=json_["chain"],
+        tags=json_["tags"],
+        status=JobStatus(json_["status"]),
+        created_date=optional_datetime_from_string(json_.get("created_date")),
+        start_date=optional_datetime_from_string(json_.get("start_date")),
+        issued_date=optional_datetime_from_string(json_.get("issued_date")),
+        finished_date=optional_datetime_from_string(json_.get("finished_date")),
+        failed_date=optional_datetime_from_string(json_.get("failed_date")),
+        scheduled_date=optional_datetime_from_string(json_.get("scheduled_date"))
     )
 
 
-def verification_mapper(json: Json) -> VerificationResponseView:
+def verification_mapper(json_: Json) -> VerificationResponseView:
     return VerificationResponseView(
-        verification=[verification_step_mapper(step) for step in json["verification"]]
+        verification=[verification_step_mapper(step) for step in json_["verification"]],
+        result=verification_report_mapper(json_["result"])
     )
 
 
-def verification_step_mapper(json: Json) -> VerificationStepResult:
+def verification_step_mapper(json_: Json) -> VerificationStepResult:
     return VerificationStepResult(
-        name=json["name"],
-        description=json["description"],
-        status=StepStatus(json["status"])
+        name=json_["name"],
+        description=json_["description"],
+        status=StepStatus(json_["status"])
     )
 
 
-def partner_mapper(json: Json):
+def partner_mapper(json_: Json):
     return PartnerView(
-        **json
+        **json_
     )
 
 
-def claim_mapper(json: Json) -> ClaimView:
+def claim_mapper(json_: Json) -> ClaimView:
     return ClaimView(
-        uid=UUID(json["uid"]),
-        partner=partner_mapper(json["partner"]),
-        credential=credential_mapper(json["credential"]),
-        issued_date=datetime.fromisoformat(json["issued_date"]),
-        signature=json["signature"]
+        uid=UUID(json_["uid"]),
+        partner=partner_mapper(json_["partner"]),
+        credential=credential_mapper(json_["credential"]),
+        issued_date=datetime.fromisoformat(json_["issued_date"]),
+        signature=json_["signature"]
     )
 
 
-def certificate_mapper(json: Json) -> CertificateView:
+def certificate_mapper(json_: Json) -> CertificateView:
     return CertificateView(
-        certificate=claim_mapper(json["certificate"]),
-        last_verification=verification_report_mapper(json.get("last_verification"))
+        certificate=claim_mapper(json_["certificate"]),
+        last_verification=verification_report_mapper(json_.get("last_verification"))
     )
 
 
-def verification_report_mapper(json: Json) -> VerificationReport:
+def verification_report_mapper(json_: Json) -> VerificationReport:
     return VerificationReport(
-        status=VerificationStatus(json["status"]),
-        timestamp=datetime.fromisoformat(json["timestamp"])
+        status=VerificationStatus(json_["status"]),
+        timestamp=datetime.fromisoformat(json_["timestamp"])
     )
