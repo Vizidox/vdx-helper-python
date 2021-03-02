@@ -257,6 +257,37 @@ class VerificationStatus(Enum):
     error = 'error'
 
 
+class VerificationReport(NamedTuple):
+    """
+    A Verification Report View to be returned by the API
+    ---
+    type: object
+    title: VerificationReport
+    description: 'The result of the latest verification performed on the certificate'
+    required:
+    - status
+    - timestamp
+    properties:
+      status:
+        type: string
+        description: 'The status of the full verification'
+        enum:
+        - ok
+        - pending
+        - expired
+        - revoked
+        - failed
+        - error
+      timestamp:
+        type: number
+        title: datetime
+        description: 'The date of verification'
+        example: '2020-02-11T15:34:05.813289+00:00'
+    """
+    status: VerificationStatus
+    timestamp: datetime
+
+
 class StepStatus(Enum):
     """
     A representation of all status of a verification step
@@ -316,39 +347,13 @@ class VerificationResponseView(NamedTuple):
           type: object
           description: 'The combined result of all verification steps'
           $ref: '#/definitions/VerificationStep'
+      result:
+        type: object
+        description: The final result of the verification
+        $ref: '#/definitions/VerificationReport'
     """
     verification: List[VerificationStepResult]
-
-
-class VerificationReport(NamedTuple):
-    """
-    A Verification Report View to be returned by the API
-    ---
-    type: object
-    title: VerificationReport
-    description: 'The result of the latest verification performed on the certificate'
-    required:
-    - status
-    - timestamp
-    properties:
-      status:
-        type: string
-        description: 'The status of the full verification'
-        enum:
-        - ok
-        - pending
-        - expired
-        - revoked
-        - failed
-        - error
-      timestamp:
-        type: number
-        title: datetime
-        description: 'The date of verification'
-        example: '2020-02-11T15:34:05.813289+00:00'
-    """
-    status: VerificationStatus
-    timestamp: datetime
+    result: VerificationReport
 
 
 class CertificateView(NamedTuple):

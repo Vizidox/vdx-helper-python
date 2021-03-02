@@ -1,6 +1,6 @@
 {
   "info": {
-    "version": "6.0.0",
+    "version": "7.0.1",
     "title": "vizidox",
     "description": "",
     "termsOfService": "/tos"
@@ -2746,8 +2746,7 @@
     "File": {
       "type": "object",
       "required": [
-        "file_hash",
-        "uploaded"
+        "file_hash"
       ],
       "properties": {
         "file_hash": {
@@ -2953,6 +2952,36 @@
       },
       "description": "An Engine Permission View to be returned by the API"
     },
+    "VerificationReport": {
+      "type": "object",
+      "title": "VerificationReport",
+      "description": "A Verification Report View to be returned by the API",
+      "required": [
+        "status",
+        "timestamp"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "The status of the full verification",
+          "enum": [
+            "ok",
+            "pending",
+            "expired",
+            "revoked",
+            "failed",
+            "error"
+          ]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "description": "The date of verification",
+          "example": "2020-02-11T15:34:05.813289+00:00"
+        }
+      }
+    },
     "VerificationStep": {
       "required": [
         "name",
@@ -2989,49 +3018,25 @@
       "type": "object",
       "title": "VerificationResponse",
       "required": [
-        "verification"
+        "verification",
+        "result"
       ],
       "properties": {
         "verification": {
           "type": "array",
           "items": {
             "type": "object",
-            "description": "The combined result of all verification steps",
+            "description": "The results of all verification steps",
             "$ref": "#/definitions/VerificationStep"
           }
+        },
+        "result": {
+          "type": "object",
+          "description": "The final result of the verification",
+          "$ref": "#/definitions/VerificationReport"
         }
       },
       "description": "A Verification Response View to be returned by the API"
-    },
-    "VerificationReport": {
-      "type": "object",
-      "title": "VerificationReport",
-      "description": "A Verification Report View to be returned by the API",
-      "required": [
-        "status",
-        "timestamp"
-      ],
-      "properties": {
-        "status": {
-          "type": "string",
-          "description": "The status of the full verification",
-          "enum": [
-            "ok",
-            "pending",
-            "expired",
-            "revoked",
-            "failed",
-            "error"
-          ]
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date",
-          "title": "datetime",
-          "description": "The date of verification",
-          "example": "2020-02-11T15:34:05.813289+00:00"
-        }
-      }
     },
     "Claim": {
       "type": "object",
