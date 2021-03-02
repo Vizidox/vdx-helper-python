@@ -8,9 +8,9 @@ from vdx_helper.models import EnginePermissionsView, CredentialView, JobView, Jo
 from vdx_helper.typing import Json
 
 
-def custom_permissions_mapper(_json: Json) -> List[EnginePermissionsView]:
+def custom_permissions_mapper(json_: Json) -> List[EnginePermissionsView]:
     permission_views = list()
-    for json_permission in _json:
+    for json_permission in json_:
         permission = EnginePermissionsView(
             name=json_permission['name'],
             is_allowed=json_permission['is_allowed'],
@@ -21,69 +21,70 @@ def custom_permissions_mapper(_json: Json) -> List[EnginePermissionsView]:
     return permission_views
 
 
-def custom_credential_mapper(json: Json) -> CredentialView:
+def custom_credential_mapper(json_: Json) -> CredentialView:
     return CredentialView(
-        uid=UUID(json["uid"]),
-        title=json["title"],
-        metadata=json["metadata"],
-        files=[file_mapper(file) for file in json["files"]],
-        credentials=[credential_mapper(credential) if 'credential' in json["credentials"] else [] for credential in
-                     json["credentials"]],
-        upload_date=datetime.fromisoformat(json["upload_date"]),
-        tags=json["tags"],
-        expiry_date=datetime.fromisoformat(json["expiry_date"])
+        uid=UUID(json_["uid"]),
+        title=json_["title"],
+        metadata=json_["metadata"],
+        files=[file_mapper(file) for file in json_["files"]],
+        credentials=[credential_mapper(credential) if 'credential' in json_["credentials"] else [] for credential in
+                     json_["credentials"]],
+        upload_date=datetime.fromisoformat(json_["upload_date"]),
+        tags=json_["tags"],
+        expiry_date=datetime.fromisoformat(json_["expiry_date"])
     )
 
 
-def custom_job_mapper(json: Json) -> JobView:
+def custom_job_mapper(json_: Json) -> JobView:
     return JobView(
-        uid=UUID(json["uid"]),
-        partner=partner_mapper(json["partner"]),
-        chain=json["chain"],
-        tags=json["tags"],
-        status=JobStatus[json["status"]],
-        created_date=datetime.fromisoformat(json["created_date"]),
-        start_date=datetime.fromisoformat(json["start_date"]) if "start_date" in json else None,
-        issued_date=datetime.fromisoformat(json["issued_date"]) if "issued_date" in json else None,
-        finished_date=datetime.fromisoformat(json["finished_date"]) if "finished_date" in json else None,
-        failed_date=datetime.fromisoformat(json["failed_date"]) if "failed_date" in json else None,
-        scheduled_date=datetime.fromisoformat(json["scheduled_date"]) if "scheduled_date" in json else None
+        uid=UUID(json_["uid"]),
+        partner=partner_mapper(json_["partner"]),
+        chain=json_["chain"],
+        tags=json_["tags"],
+        status=JobStatus[json_["status"]],
+        created_date=datetime.fromisoformat(json_["created_date"]),
+        start_date=datetime.fromisoformat(json_["start_date"]) if "start_date" in json_ else None,
+        issued_date=datetime.fromisoformat(json_["issued_date"]) if "issued_date" in json_ else None,
+        finished_date=datetime.fromisoformat(json_["finished_date"]) if "finished_date" in json_ else None,
+        failed_date=datetime.fromisoformat(json_["failed_date"]) if "failed_date" in json_ else None,
+        scheduled_date=datetime.fromisoformat(json_["scheduled_date"]) if "scheduled_date" in json_ else None
     )
 
 
-def custom_verification_mapper(json: Json) -> VerificationResponseView:
+def custom_verification_mapper(json_: Json) -> VerificationResponseView:
     return VerificationResponseView(
-        verification=[custom_verification_step_mapper(step) for step in json["verification"]]
+        verification=[custom_verification_step_mapper(step) for step in json_["verification"]],
+        result=custom_verification_report_mapper(json_["result"])
     )
 
 
-def custom_verification_step_mapper(json: Json) -> VerificationStepResult:
+def custom_verification_step_mapper(json_: Json) -> VerificationStepResult:
     return VerificationStepResult(
-        name=json["name"],
-        description=json["description"],
-        status=StepStatus[json["status"]]
+        name=json_["name"],
+        description=json_["description"],
+        status=StepStatus[json_["status"]]
     )
 
 
-def custom_certificate_mapper(json: Json) -> CertificateView:
+def custom_certificate_mapper(json_: Json) -> CertificateView:
     return CertificateView(
-        certificate=custom_claim_mapper(json["certificate"]),
-        last_verification=custom_verification_report_mapper(json["last_verification"]) if "last_verification" in json else None
+        certificate=custom_claim_mapper(json_["certificate"]),
+        last_verification=custom_verification_report_mapper(json_["last_verification"]) if "last_verification" in json_ else None
     )
 
 
-def custom_claim_mapper(json: Json) -> ClaimView:
+def custom_claim_mapper(json_: Json) -> ClaimView:
     return ClaimView(
-        uid=UUID(json["uid"]),
-        partner=partner_mapper(json["partner"]),
-        credential=custom_credential_mapper(json["credential"]),
-        issued_date=datetime.fromisoformat(json["issued_date"]),
-        signature=json["signature"]
+        uid=UUID(json_["uid"]),
+        partner=partner_mapper(json_["partner"]),
+        credential=custom_credential_mapper(json_["credential"]),
+        issued_date=datetime.fromisoformat(json_["issued_date"]),
+        signature=json_["signature"]
     )
 
 
-def custom_verification_report_mapper(json: Json) -> VerificationReport:
+def custom_verification_report_mapper(json_: Json) -> VerificationReport:
     return VerificationReport(
-        status=VerificationStatus[json["status"]],
-        timestamp=datetime.fromisoformat(json["timestamp"])
+        status=VerificationStatus[json_["status"]],
+        timestamp=datetime.fromisoformat(json_["timestamp"])
     )
