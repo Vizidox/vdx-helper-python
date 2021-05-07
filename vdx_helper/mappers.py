@@ -27,7 +27,7 @@ def get_paginated_mapper(mapper: Callable[[Json], T]) -> Callable[[Json], 'Pagin
 
 
 def permissions_mapper(json_: Json) -> List[EnginePermissionsView]:
-    permission_views = list()
+    permission_views = []
     for json_permission in json_:
         permission = EnginePermissionsView(
             name=json_permission['name'],
@@ -113,9 +113,10 @@ def claim_mapper(json_: Json) -> ClaimView:
 
 
 def certificate_mapper(json_: Json) -> CertificateView:
+    json_verification = json_.get("last_verification")
     return CertificateView(
         certificate=claim_mapper(json_["certificate"]),
-        last_verification=verification_report_mapper(json_.get("last_verification"))
+        last_verification=verification_report_mapper(json_verification) if json_verification is not None else None
     )
 
 

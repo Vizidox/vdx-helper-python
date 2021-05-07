@@ -24,9 +24,12 @@ class VdxHelperTest(unittest.TestCase):
         self.default_json_value = {'name': 'vizidox', 'value': 123}
 
     def get_vdx_helper(self):
-        vdx_helper = VDXHelper(url=self.url, keycloak_url=self.keycloak_url,
-                               core_api_key=self.core_api_key, core_api_client_id=self.core_api_client_id)
-        return vdx_helper
+        return VDXHelper(
+            url=self.url,
+            keycloak_url=self.keycloak_url,
+            core_api_key=self.core_api_key,
+            core_api_client_id=self.core_api_client_id,
+        )
 
     def test_initialization(self):
         vdx_helper = self.get_vdx_helper()
