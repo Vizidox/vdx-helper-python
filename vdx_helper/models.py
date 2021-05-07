@@ -72,12 +72,16 @@ class PaginatedView(NamedTuple, Generic[T]):
     items: List[T]
 
     def __eq__(self, obj: 'PaginatedView'):
-        return isinstance(obj, PaginatedView) \
-               and obj.page == self.page \
-               and obj.total_pages == self.total_pages \
-               and obj.per_page == self.per_page \
-               and obj.total_items == self.total_items \
-               and all([first == second for first, second in zip(obj.items, self.items)])
+        return (
+            isinstance(obj, PaginatedView)
+            and obj.page == self.page
+            and obj.total_pages == self.total_pages
+            and obj.per_page == self.per_page
+            and obj.total_items == self.total_items
+            and all(
+                first == second for first, second in zip(obj.items, self.items)
+            )
+        )
 
 
 class PartnerView(NamedTuple):
@@ -192,15 +196,22 @@ class CredentialView(NamedTuple):
     expiry_date: Optional[datetime]
 
     def __eq__(self, obj: 'CredentialView'):
-        return isinstance(obj, CredentialView) \
-               and obj.uid == self.uid \
-               and obj.title == self.title \
-               and obj.metadata == self.metadata \
-               and all([first == second for first, second in zip(obj.files, self.files)]) \
-               and all([first == second for first, second in zip(obj.credentials, self.credentials)]) \
-               and obj.upload_date == self.upload_date \
-               and obj.tags == self.tags \
-               and obj.expiry_date == self.expiry_date
+        return (
+            isinstance(obj, CredentialView)
+            and obj.uid == self.uid
+            and obj.title == self.title
+            and obj.metadata == self.metadata
+            and all(
+                first == second for first, second in zip(obj.files, self.files)
+            )
+            and all(
+                first == second
+                for first, second in zip(obj.credentials, self.credentials)
+            )
+            and obj.upload_date == self.upload_date
+            and obj.tags == self.tags
+            and obj.expiry_date == self.expiry_date
+        )
 
 
 class ClaimView(NamedTuple):

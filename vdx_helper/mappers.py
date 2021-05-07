@@ -27,7 +27,7 @@ def get_paginated_mapper(mapper: Callable[[Json], T]) -> Callable[[Json], 'Pagin
 
 
 def permissions_mapper(json_: Json) -> List[EnginePermissionsView]:
-    permission_views = list()
+    permission_views = []
     for json_permission in json_:
         permission = EnginePermissionsView(
             name=json_permission['name'],
