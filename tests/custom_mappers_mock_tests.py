@@ -69,7 +69,9 @@ def custom_verification_step_mapper(json_: Json) -> VerificationStepResult:
 def custom_certificate_mapper(json_: Json) -> CertificateView:
     return CertificateView(
         certificate=custom_claim_mapper(json_["certificate"]),
-        last_verification=custom_verification_report_mapper(json_["last_verification"]) if "last_verification" in json_ else None
+        revoked_date=datetime.fromisoformat(json_.get("revoked_date")) if "revoked_date" in json_ else None,
+        last_verification=custom_verification_report_mapper(json_.get("last_verification")) if "last_verification"
+                                                                                               in json_ else None
     )
 
 

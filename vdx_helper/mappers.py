@@ -116,6 +116,7 @@ def certificate_mapper(json_: Json) -> CertificateView:
     json_verification = json_.get("last_verification")
     return CertificateView(
         certificate=claim_mapper(json_["certificate"]),
+        revoked_date=optional_datetime_from_string(json_.get("revoked_date")),
         last_verification=verification_report_mapper(json_verification) if json_verification is not None else None
     )
 
