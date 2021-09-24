@@ -378,10 +378,17 @@ class CertificateView(NamedTuple):
     properties:
       certificate:
         $ref: '#/definitions/Claim'
+      revoked_date:
+        type: string
+        format: date
+        title: datetime
+        example: '2020-02-11T15:34:05.813217+00:00'
+        description: 'The revoked date of the certificate, if applicable'
       last_verification:
         $ref: '#/definitions/VerificationReport'
     """
     certificate: ClaimView
+    revoked_date: Optional[datetime]
     last_verification: Optional[VerificationReport]
 
 
