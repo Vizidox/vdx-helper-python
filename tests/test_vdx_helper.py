@@ -1,5 +1,6 @@
 import copy
 import unittest
+from datetime import datetime
 from http import HTTPStatus
 from typing import Dict, Any, Callable
 from unittest.mock import patch, MagicMock
@@ -547,11 +548,14 @@ class VdxHelperTest(unittest.TestCase):
         response = MagicMock()
         requests.post.return_value = response
         cert_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
+        example_revoked_date = "2020-02-11T15:34:05.813217+00:00"
 
         # OK case
         response.status_code = HTTPStatus.OK
-        vdx_helper.revoke_certificate(cert_uid=cert_uid)
+        response.json.return_value = example_revoked_date
+        revoked_date = vdx_helper.revoke_certificate(cert_uid=cert_uid)
         self.assertEqual(f"{self.url}/certificates/{cert_uid}/revoke", requests.post.call_args[0][0])
+        assert revoked_date == datetime.fromisoformat(example_revoked_date)
 
         # not OK case
         response.status_code = HTTPStatus.CONFLICT

@@ -1819,8 +1819,10 @@
           "200": {
             "description": "OK",
             "schema": {
-              "type": "object",
-              "properties": {}
+              "type": "string",
+              "format": "date",
+              "title": "datetime",
+              "example": "2020-02-11T15:34:05.814607+00:00"
             }
           },
           "403": {
@@ -1981,8 +1983,10 @@
           "200": {
             "description": "OK",
             "schema": {
-              "type": "object",
-              "properties": {}
+              "type": "string",
+              "format": "date",
+              "title": "datetime",
+              "example": "2020-02-11T15:34:05.814607+00:00"
             }
           },
           "403": {
