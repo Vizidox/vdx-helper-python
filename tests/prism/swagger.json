@@ -1819,8 +1819,10 @@
           "200": {
             "description": "OK",
             "schema": {
-              "type": "object",
-              "properties": {}
+              "type": "string",
+              "format": "date",
+              "title": "datetime",
+              "example": "2020-02-11T15:34:05.814607+00:00"
             }
           },
           "403": {
@@ -1981,8 +1983,10 @@
           "200": {
             "description": "OK",
             "schema": {
-              "type": "object",
-              "properties": {}
+              "type": "string",
+              "format": "date",
+              "title": "datetime",
+              "example": "2020-02-11T15:34:05.814607+00:00"
             }
           },
           "403": {
@@ -3084,6 +3088,13 @@
       "properties": {
         "certificate": {
           "$ref": "#/definitions/Claim"
+        },
+        "revoked_date": {
+          "type": "string",
+          "format": "date",
+          "title": "datetime",
+          "example": "2020-02-11T15:34:05.813217+00:00",
+          "description": "The revoked date of the certificate, if applicable"
         },
         "last_verification": {
           "$ref": "#/definitions/VerificationReport"

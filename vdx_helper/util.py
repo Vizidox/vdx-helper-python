@@ -3,6 +3,19 @@ from typing import Optional, List
 from uuid import UUID
 
 
+def datetime_from_string(dt: str) -> datetime:
+    """
+    Converts a datelike string to a datetime object.
+
+    :param dt: The string to be converted
+    :type dt: str
+
+    :return: A datetime in iso format
+    :rtype: datetime
+    """
+    return datetime.fromisoformat(dt)
+
+
 def optional_datetime_from_string(dt: Optional[str]) -> Optional[datetime]:
     """
     Converts a datelike string to a datetime object.
@@ -14,7 +27,7 @@ def optional_datetime_from_string(dt: Optional[str]) -> Optional[datetime]:
     :return: A datetime in iso format
     :rtype: datetime, optional
     """
-    return datetime.fromisoformat(dt) if dt is not None else None
+    return datetime_from_string(dt) if dt is not None else None
 
 
 def uuid_to_string(uuid_: UUID) -> str:

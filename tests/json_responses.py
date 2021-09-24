@@ -168,12 +168,24 @@ certificate_json = {
     "last_verification": verification_result_json
 }
 
+revoked_certificate_json = {
+    "certificate": {
+        "uid": "123e4567-e89b-12d3-a456-426655440000",
+        "partner": partner_json,
+        "credential": credential_json,
+        "issued_date": "2020-02-11T15:34:05.813217+00:00",
+        "signature": "signature"
+    },
+    "revoked_date": "2020-02-11T15:34:05.813217+00:00",
+    "last_verification": verification_result_json
+}
+
 paginated_certificate = {
     "page": "1",
     "total_pages": "1",
     "per_page": "20",
-    "total_items": "1",
-    "items": [certificate_json]
+    "total_items": "2",
+    "items": [certificate_json, revoked_certificate_json]
 }
 
 mapped_claim = ClaimView(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
@@ -182,7 +194,12 @@ mapped_claim = ClaimView(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
                          issued_date=datetime.fromisoformat("2020-02-11T15:34:05.813217+00:00"),
                          signature='signature')
 
-mapped_certificate = CertificateView(certificate=mapped_claim, last_verification=mapped_verification_report)
+mapped_certificate = CertificateView(certificate=mapped_claim, revoked_date=None,
+                                     last_verification=mapped_verification_report)
 
-mapped_paginated_certificate = PaginatedView(page=1, total_pages=1, per_page=20, total_items=1,
-                                             items=[mapped_certificate])
+mapped_revoked_certificate = CertificateView(certificate=mapped_claim,
+                                             revoked_date=datetime.fromisoformat("2020-02-11T15:34:05.813217+00:00"),
+                                             last_verification=mapped_verification_report)
+
+mapped_paginated_certificate = PaginatedView(page=1, total_pages=1, per_page=20, total_items=2,
+                                             items=[mapped_certificate, mapped_revoked_certificate])
