@@ -11,7 +11,7 @@ from nndict import nndict
 from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper, \
     verification_mapper, certificate_mapper, currency_mapper
 from vdx_helper.typing import Json
-from vdx_helper.util import optional_uuid_to_string, optional_uuids_to_string, uuids_to_string
+from vdx_helper.util import optional_uuid_to_string, optional_uuids_to_string, uuids_to_string, datetime_from_string
 
 T = TypeVar('T')
 
@@ -536,7 +536,7 @@ class VDXHelper:
         certificates_json = response.json()
         return mapper(certificates_json)
 
-    def revoke_certificate(self, cert_uid: UUID) -> None:
+    def revoke_certificate(self, cert_uid: UUID) -> datetime:
 
         response = requests.post(
             f"{self.url}/certificates/{cert_uid}/revoke",
@@ -547,7 +547,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return
+        return datetime_from_string(response.json())
 
     def get_job_certificates(self, job_uid: UUID, and_tags: Optional[str] = None, or_tags: Optional[str] = None,
                              mapper: Callable[[Json], T] = get_paginated_mapper(certificate_mapper), **pagination) -> T:  # type: ignore # https://github.com/python/mypy/issues/3737
