@@ -710,7 +710,7 @@ class VdxHelperTest(unittest.TestCase):
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
-    def test_get_file_attributes(self, header, requests):
+    def test_get_file(self, header, requests):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
@@ -718,24 +718,24 @@ class VdxHelperTest(unittest.TestCase):
         file_hash = "123456789"
         # OK status
         response.status_code = HTTPStatus.OK
-        file_attributes = vdx_helper.get_file_attributes(file_hash=file_hash)
-        self.assertEqual(mapped_file, file_attributes)
-        self.assertEqual(f"{self.url}/files/{file_hash}/attributes", requests.get.call_args[0][0])
+        file = vdx_helper.get_file(file_hash=file_hash)
+        self.assertEqual(mapped_file, file)
+        self.assertEqual(f"{self.url}/files/{file_hash}", requests.get.call_args[0][0])
 
         # not OK status
-        file_attributes = None
+        file = None
         response.status_code = HTTPStatus.CONFLICT
         try:
-            file_attributes = vdx_helper.get_file_attributes(file_hash=file_hash)
+            file = vdx_helper.get_file(file_hash=file_hash)
         except VDXError:
-            self.assertIsNone(file_attributes)
-            self.assertEqual(f"{self.url}/files/{file_hash}/attributes", requests.get.call_args[0][0])
+            self.assertIsNone(file)
+            self.assertEqual(f"{self.url}/files/{file_hash}", requests.get.call_args[0][0])
 
         # with custom mapper
         response.status_code = HTTPStatus.OK
-        file_attributes = vdx_helper.get_file_attributes(file_hash=file_hash, mapper=get_json_mapper())
-        self.assertEqual(f"{self.url}/files/{file_hash}/attributes", requests.get.call_args[0][0])
-        self.assertDictEqual(file_attributes, file_json)
+        file = vdx_helper.get_file(file_hash=file_hash, mapper=get_json_mapper())
+        self.assertEqual(f"{self.url}/files/{file_hash}", requests.get.call_args[0][0])
+        self.assertDictEqual(file, file_json)
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
