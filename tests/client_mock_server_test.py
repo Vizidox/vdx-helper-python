@@ -258,11 +258,11 @@ class ClientMockServerTest(TestCase):
         assert job is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')
-    def test_get_file_attributes(self, _get_token_string):
+    def test_get_file(self, _get_token_string):
         vdx_helper = self.get_vdx_helper()
         _get_token_string.return_value = "vizidox-authorization"
         file_hash = "123456789"
-        file = vdx_helper.get_file_attributes(file_hash=file_hash)
+        file = vdx_helper.get_file(file_hash=file_hash)
         assert file is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._get_token_string')

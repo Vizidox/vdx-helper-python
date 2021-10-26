@@ -2204,9 +2204,9 @@
         "operationId": "verify_by_credential_uid"
       }
     },
-    "/api/files/{file_hash}/attributes": {
+    "/api/files/{file_hash}": {
       "get": {
-        "summary": "Get attributes for file",
+        "summary": "Get file",
         "responses": {
           "200": {
             "description": "OK",
