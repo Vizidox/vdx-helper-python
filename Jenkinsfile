@@ -25,9 +25,15 @@ pipeline {
                 }
             }
         }
+        stage('Build Docs') {
+            steps {
+                sh "docker build -f ${env.workspace}/docs.Dockerfile -t nexus.morphotech.co.uk/vdx-helper-docs ."
+            }
+        }
         stage('Push to Nexus') {
             steps {
                 sh "docker-compose run ${docker_image_tag} /bin/bash -c \"poetry config repositories.morphotech ${nexus_url}; poetry config http-basic.morphotech ${env.nexus_account} ${env.nexus_password}; poetry build; poetry publish -r morphotech\""
+                sh "docker push nexus.morphotech.co.uk/vdx-helper-docs:latest"
             }
         }
 //         stage('Sonarqube code inspection') {
