@@ -1,2 +1,99 @@
 /* This line is theme specific - it includes the base theme CSS */
-@import 'theme.css';       /* for the Read the Docs theme */
+@import "theme.css"; /* for the Read the Docs theme */
+
+:root {
+  --primary-light-color: #2faec2;
+  --main-content-padding: 1.618em;
+}
+
+.wy-side-nav-search > a:hover {
+  background: unset;
+}
+
+.wy-nav-side {
+  transition: left 1s ease-in-out;
+  -webkit-transition: left 1s ease-in-out;
+}
+.wy-nav-side.shift {
+  width: 300px;
+}
+
+.wy-nav-content-wrap {
+  transition: left 1s ease-in-out;
+  -webkit-transition: left 1s ease-in-out;
+  position: absolute;
+  min-width: 100%;
+  left: 0;
+}
+.wy-nav-content-wrap.shift {
+  left: 300px;
+}
+.wy-nav-content {
+  min-height: 100vh;
+}
+.wy-nav-content .rst-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.rst-content .document {
+  flex: 1 1 auto;
+}
+
+.wy-menu-vertical header,
+.wy-menu-vertical p.caption {
+  color: var(--primary-light-color);
+}
+
+html.writer-html4 .rst-content dl:not(.docutils) > dt,
+html.writer-html5
+  .rst-content
+  dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)
+  > dt {
+  word-wrap: anywhere;
+  width: 100%;
+}
+
+footer p {
+  margin-bottom: 0;
+}
+
+/* Breakpoints */
+
+/* XS (595px and below) */
+@media only screen and (max-width: 595px) {
+  html.writer-html5 .rst-content dl.field-list,
+  html.writer-html5 .rst-content dl.footnote {
+    grid-template-columns: auto;
+  }
+}
+/* MD (768px and below) */
+@media only screen and (max-width: 768px) {
+  html.writer-html5 .rst-content dl.field-list > dt,
+  html.writer-html5 .rst-content dl.footnote > dt {
+    padding-left: 0;
+  }
+  .wy-nav-top {
+    padding-left: var(--main-content-padding);
+    padding-right: var(--main-content-padding);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .wy-nav-top > i {
+    position: absolute;
+    left: 0;
+    transform: translateX(100%);
+    padding-top: 0;
+  }
+}
+/* LG (889px and below) */
+@media only screen and (max-width: 889px) {
+  .rst-content dl dd {
+    margin-left: 0;
+  }
+  footer .lastupdated {
+    display: block;
+  }
+}
