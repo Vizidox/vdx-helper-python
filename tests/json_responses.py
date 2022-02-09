@@ -1,9 +1,10 @@
 from datetime import datetime
 from uuid import UUID
 
-from vdx_helper.models import FileView, EnginePermissionsView, CredentialView, PaginatedView, JobView, PartnerView, \
-    JobStatus, VerificationResponseView, VerificationStepResult, StepStatus, CertificateView, ClaimView, \
-    VerificationReport, VerificationStatus, CurrencyAmountView
+from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
+from vdx_helper.models import File, EnginePermission, Credential, PaginatedResponse, Job, Partner, \
+    Verification, VerificationStepResult, Certificate, Claim, \
+    VerificationResult
 
 engine_json = [
     {
@@ -18,12 +19,8 @@ engine_json = [
     }
 ]
 
-engine_cost_json = {"amount": 10.467, "currency": 'bitcoin'}
-
-mapped_engine_cost = CurrencyAmountView(amount=10.467, currency="bitcoin")
-
-mapped_engine_permissions = [EnginePermissionsView(name="bitcoin", is_allowed=True, show_prices=True),
-                             EnginePermissionsView(name="dogecoin", is_allowed=False, show_prices=False)]
+mapped_engine_permissions = [EnginePermission(name="bitcoin", is_allowed=True, show_prices=True),
+                             EnginePermission(name="dogecoin", is_allowed=False, show_prices=False)]
 
 file_json = {
     "file_hash": "hash",
@@ -38,10 +35,10 @@ paginated_file = {
     "items": [file_json]
 }
 
-mapped_file = FileView(file_hash="hash", file_type="type")
+mapped_file = File(file_hash="hash", file_type="type")
 
-mapped_paginated_file = PaginatedView(page=1, total_pages=1, per_page=20, total_items=1,
-                                      items=[mapped_file])
+mapped_paginated_file = PaginatedResponse(page=1, total_pages=1, per_page=20, total_items=1,
+                                          items=[mapped_file])
 
 
 credential_json = {
@@ -55,11 +52,11 @@ credential_json = {
     "expiry_date": "2021-01-01T15:34:05.814607+00:00"
 }
 
-mapped_credential = CredentialView(uid=UUID("189e4e5c-833d-430b-9baa-5230841d997f"), title="title", metadata={},
-                                   files=[mapped_file], credentials=[],
-                                   upload_date=datetime.fromisoformat('2020-01-01T11:29:28.977178+00:00'),
-                                   tags=["example"],
-                                   expiry_date=datetime.fromisoformat("2021-01-01T15:34:05.814607+00:00"))
+mapped_credential = Credential(uid=UUID("189e4e5c-833d-430b-9baa-5230841d997f"), title="title", metadata={},
+                               files=[mapped_file], credentials=[],
+                               upload_date=datetime.fromisoformat('2020-01-01T11:29:28.977178+00:00'),
+                               tags=["example"],
+                               expiry_date=datetime.fromisoformat("2021-01-01T15:34:05.814607+00:00"))
 
 paginated_credential = {
     "page": "1",
@@ -69,13 +66,14 @@ paginated_credential = {
     "items": [credential_json]
 }
 
-mapped_paginated_credential = PaginatedView(page=1, total_pages=1, per_page=20, total_items=1,
-                                            items=[mapped_credential])
+mapped_paginated_credential = PaginatedResponse(page=1, total_pages=1, per_page=20, total_items=1,
+                                                items=[mapped_credential])
 
 partner_json = {
     "id": "partner_id",
     "name": "partner"
 }
+
 job_json = {
     "uid": "123e4567-e89b-12d3-a456-426655440000",
     "partner": partner_json,
@@ -96,22 +94,22 @@ paginated_job = {
     "items": [job_json]
 }
 
-mapped_partner = PartnerView(id="partner_id", name="partner")
-mapped_job = JobView(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
-                     partner=mapped_partner,
-                     chain='dogecoin',
-                     tags=["tag1"],
-                     status=JobStatus.scheduled,
-                     created_date=datetime.fromisoformat("2020-11-13T11:30:00.790190+00:00"),
-                     scheduled_date=datetime.fromisoformat("2020-11-13T12:00:00+00:00"),
-                     start_date=None,
-                     issued_date=None,
-                     finished_date=None,
-                     failed_date=None
-                     )
+mapped_partner = Partner(id="partner_id", name="partner")
+mapped_job = Job(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
+                 partner=mapped_partner,
+                 chain='dogecoin',
+                 tags=["tag1"],
+                 status=JobStatus.scheduled,
+                 created_date=datetime.fromisoformat("2020-11-13T11:30:00.790190+00:00"),
+                 scheduled_date=datetime.fromisoformat("2020-11-13T12:00:00+00:00"),
+                 start_date=None,
+                 issued_date=None,
+                 finished_date=None,
+                 failed_date=None
+                 )
 
-mapped_paginated_job = PaginatedView(page=1, total_pages=1, per_page=20, total_items=1,
-                                     items=[mapped_job])
+mapped_paginated_job = PaginatedResponse(page=1, total_pages=1, per_page=20, total_items=1,
+                                         items=[mapped_job])
 
 mapped_verification_step_1 = VerificationStepResult(name='Checking certificate integrity',
                                                     description={
@@ -130,7 +128,7 @@ mapped_verification_step_2 = VerificationStepResult(name='Checking revocation da
                                                     status=StepStatus.failed)
 
 
-mapped_verification_report = VerificationReport(status=VerificationStatus.ok,
+mapped_verification_report = VerificationResult(status=VerificationStatus.ok,
                                                 timestamp=datetime.fromisoformat("2020-02-11T15:34:05.813289+00:00"))
 
 verification_result_json = {
@@ -154,8 +152,8 @@ verification_response_json = {
     "result": verification_result_json
 }
 
-mapped_verification = VerificationResponseView([mapped_verification_step_1, mapped_verification_step_2],
-                                               mapped_verification_report)
+mapped_verification = Verification([mapped_verification_step_1, mapped_verification_step_2],
+                                   mapped_verification_report)
 
 certificate_json = {
     "certificate": {
@@ -188,18 +186,18 @@ paginated_certificate = {
     "items": [certificate_json, revoked_certificate_json]
 }
 
-mapped_claim = ClaimView(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
-                         partner=mapped_partner,
-                         credential=mapped_credential,
-                         issued_date=datetime.fromisoformat("2020-02-11T15:34:05.813217+00:00"),
-                         signature='signature')
+mapped_claim = Claim(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
+                     partner=mapped_partner,
+                     credential=mapped_credential,
+                     issued_date=datetime.fromisoformat("2020-02-11T15:34:05.813217+00:00"),
+                     signature='signature')
 
-mapped_certificate = CertificateView(certificate=mapped_claim, revoked_date=None,
-                                     last_verification=mapped_verification_report)
+mapped_certificate = Certificate(certificate=mapped_claim, revoked_date=None,
+                                 last_verification=mapped_verification_report)
 
-mapped_revoked_certificate = CertificateView(certificate=mapped_claim,
-                                             revoked_date=datetime.fromisoformat("2020-02-11T15:34:05.813217+00:00"),
-                                             last_verification=mapped_verification_report)
+mapped_revoked_certificate = Certificate(certificate=mapped_claim,
+                                         revoked_date=datetime.fromisoformat("2020-02-11T15:34:05.813217+00:00"),
+                                         last_verification=mapped_verification_report)
 
-mapped_paginated_certificate = PaginatedView(page=1, total_pages=1, per_page=20, total_items=2,
-                                             items=[mapped_certificate, mapped_revoked_certificate])
+mapped_paginated_certificate = PaginatedResponse(page=1, total_pages=1, per_page=20, total_items=2,
+                                                 items=[mapped_certificate, mapped_revoked_certificate])

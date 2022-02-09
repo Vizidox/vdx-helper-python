@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "vdx-helper"
-version = "2.2.0"
+version = "2.2.1"
 description = ""
 authors = ["Joana Teixeira <joana.teixeira@vizidox.com>", "Tiago Santos <tiago.santos@vizidox.com>",
 "Hieu Le <hieu.le@morphotech.co.uk>", "Rita Mariquitos <rita.mariquitos@morphotech.co.uk>"]
 
 [tool.poetry.dependencies]
-python = "3.7.7"
+python = "^3.7"
 requests="2.22.0"
 nndict="1.0.0"
 
@@ -15,6 +15,9 @@ pytest = "5.4.3"
 coverage = "^5.0"
 pytest-cov = "^2.10.1"
 testcontainers = "^2.5"
+mypy="0.910"
+sphinx="4.3.0"
+sphinx-rtd-theme="1.0.0"
 
 [build-system]
 requires = ["poetry>=1.0"]

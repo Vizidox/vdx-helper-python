@@ -5,7 +5,7 @@ This repository provides a wrapper for every call made to VDX Core Api.
 This helper first needs to be authorized by wielding valid token from Keycloak, then use that token for further requests as long as it has not expired.
 
 Each method also allows one to include their own custom mappers, enabling the method to return the result in the format the user wishes.
-![workflow illustration](doc/images/vdx-helper.png)
+![workflow illustration](docs/images/vdx-helper.png)
 
 ## Prerequisites
 
@@ -65,6 +65,19 @@ docker exec -it local_api bash
 ```
 python -m tests
 ```
+
+## Documentation
+
+To build the documentation locally:
+
+```shell
+cd docs
+make html
+```
+
+The build files can be found in docs/build. Open the generated index.html file in the html folder, and you can now 
+navigate the documentation. Repeat the above command and refresh your browser every time you update the documentation.
+All source files are in docs/source, with vdx_helper containing the documentation generated from docstrings.
  
 ## Authors
 

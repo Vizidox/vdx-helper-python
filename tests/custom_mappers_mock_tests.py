@@ -2,27 +2,27 @@ from datetime import datetime
 from typing import List
 from uuid import UUID
 
+from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
 from vdx_helper.mappers import file_mapper, credential_mapper, partner_mapper
-from vdx_helper.models import EnginePermissionsView, CredentialView, JobView, JobStatus, VerificationResponseView, \
-    VerificationStepResult, StepStatus, CertificateView, ClaimView, VerificationReport, VerificationStatus
-from vdx_helper.typing import Json
+from vdx_helper.models import EnginePermission, Credential, Job, Verification, VerificationStepResult, Certificate, \
+    Claim, VerificationResult
 
 
-def custom_permissions_mapper(json_: Json) -> List[EnginePermissionsView]:
-    permission_views = list()
+def custom_permissions_mapper(json_: dict) -> List[EnginePermission]:
+    permissions = []
     for json_permission in json_:
-        permission = EnginePermissionsView(
+        permission = EnginePermission(
             name=json_permission['name'],
             is_allowed=json_permission['is_allowed'],
             # for some reason prism generates "python valid booleans" so no need for conversion
             show_prices=json_permission["show_prices"]
         )
-        permission_views.append(permission)
-    return permission_views
+        permissions.append(permission)
+    return permissions
 
 
-def custom_credential_mapper(json_: Json) -> CredentialView:
-    return CredentialView(
+def custom_credential_mapper(json_: dict) -> Credential:
+    return Credential(
         uid=UUID(json_["uid"]),
         title=json_["title"],
         metadata=json_["metadata"],
@@ -35,8 +35,8 @@ def custom_credential_mapper(json_: Json) -> CredentialView:
     )
 
 
-def custom_job_mapper(json_: Json) -> JobView:
-    return JobView(
+def custom_job_mapper(json_: dict) -> Job:
+    return Job(
         uid=UUID(json_["uid"]),
         partner=partner_mapper(json_["partner"]),
         chain=json_["chain"],
@@ -51,14 +51,14 @@ def custom_job_mapper(json_: Json) -> JobView:
     )
 
 
-def custom_verification_mapper(json_: Json) -> VerificationResponseView:
-    return VerificationResponseView(
+def custom_verification_mapper(json_: dict) -> Verification:
+    return Verification(
         verification=[custom_verification_step_mapper(step) for step in json_["verification"]],
         result=custom_verification_report_mapper(json_["result"])
     )
 
 
-def custom_verification_step_mapper(json_: Json) -> VerificationStepResult:
+def custom_verification_step_mapper(json_: dict) -> VerificationStepResult:
     return VerificationStepResult(
         name=json_["name"],
         description=json_["description"],
@@ -66,8 +66,8 @@ def custom_verification_step_mapper(json_: Json) -> VerificationStepResult:
     )
 
 
-def custom_certificate_mapper(json_: Json) -> CertificateView:
-    return CertificateView(
+def custom_certificate_mapper(json_: dict) -> Certificate:
+    return Certificate(
         certificate=custom_claim_mapper(json_["certificate"]),
         revoked_date=datetime.fromisoformat(json_.get("revoked_date")) if "revoked_date" in json_ else None,
         last_verification=custom_verification_report_mapper(json_.get("last_verification")) if "last_verification"
@@ -75,8 +75,8 @@ def custom_certificate_mapper(json_: Json) -> CertificateView:
     )
 
 
-def custom_claim_mapper(json_: Json) -> ClaimView:
-    return ClaimView(
+def custom_claim_mapper(json_: dict) -> Claim:
+    return Claim(
         uid=UUID(json_["uid"]),
         partner=partner_mapper(json_["partner"]),
         credential=custom_credential_mapper(json_["credential"]),
@@ -85,8 +85,8 @@ def custom_claim_mapper(json_: Json) -> ClaimView:
     )
 
 
-def custom_verification_report_mapper(json_: Json) -> VerificationReport:
-    return VerificationReport(
+def custom_verification_report_mapper(json_: dict) -> VerificationResult:
+    return VerificationResult(
         status=VerificationStatus[json_["status"]],
         timestamp=datetime.fromisoformat(json_["timestamp"])
     )

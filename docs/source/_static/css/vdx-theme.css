@@ -1,0 +1,145 @@
+/* This line is theme specific - it includes the base theme CSS */
+@import "theme.css"; /* for the Read the Docs theme */
+
+:root {
+  --primary-light-color: #2faec2;
+  --main-content-padding: 1.618em;
+  --sidebar-menu-width: 300px;
+  --sidebar-menu-width-xxs: 240px;
+}
+
+.wy-side-nav-search > a:hover {
+  background: unset;
+}
+
+.wy-nav-side {
+  -o-transition: left 0.5s ease-in-out;
+  transition: left 0.5s ease-in-out;
+  -webkit-transition: left 0.5s ease-in-out;
+}
+.wy-nav-side.shift {
+  width: var(--sidebar-menu-width);
+}
+
+.wy-nav-content-wrap {
+  -o-transition: left 0.5s ease-in-out;
+  transition: left 0.5s ease-in-out;
+  -webkit-transition: left 0.5s ease-in-out;
+  position: absolute;
+  min-width: 100%;
+  width: calc(100vw - var(--sidebar-menu-width));
+  left: 0;
+}
+
+.wy-nav-content-wrap.shift {
+  left: var(--sidebar-menu-width);
+  min-width: 100%;
+}
+.wy-nav-content {
+  min-height: 100vh;
+  margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.wy-nav-content .rst-content {
+  height: 100%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+.rst-content .document {
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+}
+
+.wy-menu-vertical header,
+.wy-menu-vertical p.caption {
+  color: var(--primary-light-color);
+}
+
+html.writer-html4 .rst-content dl:not(.docutils) > dt,
+html.writer-html5
+  .rst-content
+  dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)
+  > dt {
+  width: 100%;
+}
+
+footer p {
+  margin-bottom: 0;
+}
+
+/* Breakpoints */
+
+/* XS and below (595px and below) */
+@media only screen and (max-width: 595px) {
+  html.writer-html5 .rst-content dl.field-list,
+  html.writer-html5 .rst-content dl.footnote {
+    -ms-grid-columns: auto;
+    grid-template-columns: auto;
+  }
+}
+/* MD and below (768px and below) */
+@media only screen and (max-width: 768px) {
+  html.writer-html5 .rst-content dl.field-list > dt,
+  html.writer-html5 .rst-content dl.footnote > dt {
+    padding-left: 0;
+  }
+  .wy-nav-top {
+    padding-left: var(--main-content-padding);
+    padding-right: var(--main-content-padding);
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    position: relative;
+  }
+  .wy-nav-top > i {
+    position: absolute;
+    left: 0;
+    -webkit-transform: translateX(100%);
+    -ms-transform: translateX(100%);
+    transform: translateX(100%);
+    padding-top: 0;
+  }
+}
+/* LG and below (889px and below) */
+@media only screen and (max-width: 889px) {
+  .rst-content dl dd {
+    margin-left: 0;
+  }
+  footer .lastupdated {
+    display: block;
+  }
+}
+/* When sidebar nav always present  */
+@media only screen and (min-width: 768px) {
+  .wy-nav-content-wrap {
+    margin-left: var(--sidebar-menu-width);
+    min-width: calc(100% - var(--sidebar-menu-width));
+  }
+}
+
+/* Specific for 4 inch screens */
+@media only screen and (max-width: 320px) {
+  .wy-nav-side {
+    width: var(--sidebar-menu-width-xxs);
+    left: calc(-1 * var(--sidebar-menu-width-xxs));
+  }
+  .wy-nav-side.shift {
+    width: var(--sidebar-menu-width-xxs);
+  }
+  .wy-nav-content-wrap.shift {
+    left: var(--sidebar-menu-width-xxs);
+  }
+}

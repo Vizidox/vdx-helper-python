@@ -1,203 +1,148 @@
 from datetime import datetime
-from enum import Enum
 from typing import NamedTuple, Optional, List, Mapping, Generic, TypeVar
 from uuid import UUID
+
+from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
 
 T = TypeVar('T')
 
 
-class EnginePermissionsView(NamedTuple):
+class EnginePermission(NamedTuple):
     """
-    An Engine Permission View to be returned by the API
-    ---
-    type: array
-    items:
-      type: object
-      title: EnginePermissions
-      required:
-      - name
-      - is_allowed
-      - show_prices
-      properties:
-        name:
-          type: string
-          description: 'The blockchain engine name'
-        is_allowed:
-          type: boolean
-          description: 'The partner''s access to issuing on the blockchain'
-        show_prices:
-          type: boolean
-          description: 'The partner''s access to the currency issuing price'
+    Object representing the current permission status to use a specific Blockchain engine.
+
+    :param name: The Blockchain engine name
+    :type name: str
+
+    :param is_allowed: Flag indicating if the partner can use the specific engine
+    :type is_allowed: bool
+
+    :param show_prices: Flag indicating if the partner can view the issuing price on the engine
+    :type show_prices: bool
     """
     name: str
     is_allowed: bool
     show_prices: bool
 
-    def __eq__(self, obj: 'EnginePermissionsView'):
-        return isinstance(obj, EnginePermissionsView) \
+    def __eq__(self, obj: 'EnginePermission'):
+        """
+        Overriding of the equals method for simplified comparison between Engine Permission objects.
+
+        :param obj: The other instance of an engine permission object
+        :type obj: :class:`EnginePermission`
+
+        :return: True if the two objects are equal
+        :rtype: bool
+        """
+        return isinstance(obj, EnginePermission) \
                and obj.name == self.name \
                and obj.is_allowed == self.is_allowed \
                and obj.show_prices == self.show_prices
 
 
-class PaginatedView(NamedTuple, Generic[T]):
+class Partner(NamedTuple):
     """
-    A Paginated View to be returned by the API
-    ---
-    type: object
-    title: Paginated
-    properties:
-      page:
-        type: integer
-        description: 'The current page'
-      total_pages:
-        type: integer
-        description: 'Total number of pages'
-      per_page:
-        type: integer
-        description: 'The number of items per page'
-      total_items:
-        type: integer
-        description: 'The total number of items obtained from the query'
-      items:
-        type: array
-        description: 'List of items'
-        items:
-          type: object
-    """
-    page: int
-    total_pages: int
-    per_page: int
-    total_items: int
-    items: List[T]
+    A Partner object returned by the Core API.
 
-    def __eq__(self, obj: 'PaginatedView'):
-        return (
-            isinstance(obj, PaginatedView)
-            and obj.page == self.page
-            and obj.total_pages == self.total_pages
-            and obj.per_page == self.per_page
-            and obj.total_items == self.total_items
-            and all(
-                first == second for first, second in zip(obj.items, self.items)
-            )
-        )
+    :param id: The partner ID
+    :type id: str
 
-
-class PartnerView(NamedTuple):
-    """
-    A Partner View to be returned by the API
-    ---
-    type: object
-    description: 'The issuing partner'
-    required:
-    - id
-    - name
-    properties:
-      id:
-        type: string
-        description: 'The partner id'
-      name:
-        type: string
-        description: 'The partner name'
+    :param name: The name of the partner
+    :type name: str
     """
     id: str
     name: str
 
-    def __eq__(self, obj: 'PartnerView'):
-        return isinstance(obj, PartnerView) and obj.id == self.id and obj.name == self.name
+    def __eq__(self, obj: 'Partner'):
+        """
+        Overriding of the equals method for simplified comparison between Paginated objects.
+
+        :param obj: The other instance of a paginated object
+        :type obj: :class:`PaginatedResponse`
+
+        :return: True if the two objects are equal
+        :rtype: bool
+        """
+        return isinstance(obj, Partner) and obj.id == self.id and obj.name == self.name
 
 
-class FileView(NamedTuple):
+class File(NamedTuple):
     """
-    A File View to be returned by the API
-    ---
-    required:
-    - file_hash
-    properties:
-      file_hash:
-        type: string
-        description: 'The file hash'
-      file_type:
-        type: string
-        description: 'The type of the file'
+    Object representing a File returned by the Core API.
+
+    :param file_hash: The file's hash
+    :type file_hash: str
+
+    :param file_type: The file `MIME type <https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types>`
+    :type file_type: str, optional
     """
     file_hash: str
     file_type: Optional[str]
 
-    def __eq__(self, obj: 'FileView'):
-        return isinstance(obj, FileView) \
+    def __eq__(self, obj: 'File'):
+        """
+        Overriding of the equals method for simplified comparison between File objects.
+
+        :param obj: The other instance of a File object
+        :type obj: :class:`File`
+
+        :return: True if the two objects are equal
+        :rtype: bool
+        """
+        return isinstance(obj, File) \
                and obj.file_hash == self.file_hash \
                and obj.file_type == self.file_type
 
 
-class CredentialView(NamedTuple):
+class Credential(NamedTuple):
     """
-    A Credential View to be returned by the API
-    ---
-    type: object
-    required:
-    - uid
-    - title
-    - metadata
-    - files
-    - credentials
-    - upload_date
-    - tags
-    properties:
-      uid:
-        type: string
-        title: uuid
-        example: 123e4567-e89b-12d3-a456-426655440000
-        description: 'The credential uid'
-      title:
-        type: string
-        description: 'The credential title'
-      metadata:
-        type: object
-        additionalProperties: {}
-        description: 'Additional data in the credential'
-      files:
-        type: array
-        title: Files
-        $ref: '#/definitions/File'
-        items:
-          type: object
-      files:
-        type: array
-        title: Files
-        $ref: '#/definitions/File'
-        items:
-          type: object
-      upload_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.811954+00:00'
-        description: 'The credential date of creation'
-      tags:
-        type: array
-        description: 'A list of tags to identify the job'
-        example: ['tagA', 'tagB', 'tagC']
-        items:
-          type: string
-      expiry_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.813229+00:00'
-        description: 'The date of expiry, if it was selected'
+    Object representing a Credential returned by the Core API.
+
+    :param uid: The uid of the credential
+    :type uid: :class:`uuid.UUID`
+
+    :param title: The credential title
+    :type title: str
+
+    :param metadata: Any additional data in the credential
+    :type metadata: dict
+
+    :param files: List of files issued on the credential
+    :type files: List[:class:`File`]
+
+    :param credentials: List of credentials associated to the credential
+    :type credentials: List[:class:`Credential`]
+
+    :param upload_date: The date the credential was uploaded
+    :type upload_date: :class:`datetime.datetime`
+
+    :param tags: List of tags identifying the credential
+    :type tags: List[str]
+
+    :param expiry_date: The date the credential expires, if set
+    :type expiry_date: :class:`datetime.datetime`, optional
     """
     uid: UUID
     title: str
     metadata: dict
-    files: List[FileView]
-    credentials: List['CredentialView']
+    files: List[File]
+    credentials: List['Credential']
     upload_date: datetime
     tags: List[str]
     expiry_date: Optional[datetime]
 
-    def __eq__(self, obj: 'CredentialView'):
+    def __eq__(self, obj: 'Credential'):
+        """
+        Overriding of the equals method for simplified comparison between Credential objects.
+
+        :param obj: The other instance of a credential object
+        :type obj: :class:`Credential`
+
+        :return: True if the two objects are equal
+        :rtype: bool
+        """
         return (
-            isinstance(obj, CredentialView)
+            isinstance(obj, Credential)
             and obj.uid == self.uid
             and obj.title == self.title
             and obj.metadata == self.metadata
@@ -214,274 +159,45 @@ class CredentialView(NamedTuple):
         )
 
 
-class ClaimView(NamedTuple):
+class Job(NamedTuple):
     """
-    A Claim View to be returned by the API
-    A Claim has all data directly related to the issuing Certificate
-    ---
-    type: object
-    required:
-    - uid
-    - partner
-    - credential
-    - issued_date
-    - signature
-    properties:
-      uid:
-        type: string
-        title: uuid
-        example: 123e4567-e89b-12d3-a456-426655440000
-        description: 'The certificate uid'
-      partner:
-        $ref: '#/definitions/Partner'
-      credential:
-        $ref: '#/definitions/Credential'
-      issued_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.813217+00:00'
-        description: 'The issuing date of the certificate'
-      signature:
-        type: string
-        description: 'The partners signature on the certificate'
+    Object representing a Certificate returned by the Core API.
 
-    """
-    uid: UUID
-    partner: PartnerView
-    credential: CredentialView
-    issued_date: datetime
-    signature: str
+    :param uid: uid of the Job
+    :type uid: :class:`uuid.UUID`
 
-    def __eq__(self, obj: 'ClaimView'):
-        return isinstance(obj, ClaimView) and obj.uid == self.uid
+    :param partner: The partner who issued the job
+    :type partner: :class:`Partner`
 
+    :param chain: The Blockchain engine the job was issued on
+    :type chain: str
 
-class VerificationStatus(Enum):
-    """
-    A representation of all possible verification status
-    """
-    ok = 'ok'
-    pending = 'pending'
-    expired = 'expired'
-    revoked = 'revoked'
-    failed = 'failed'
-    error = 'error'
+    :param tags: List of tags identifying the credential
+    :type tags: List[str]
 
+    :param status: Current status of the job
+    :type status: :class:`vdx_helper.JobStatus`
 
-class VerificationReport(NamedTuple):
-    """
-    A Verification Report View to be returned by the API
-    ---
-    type: object
-    title: VerificationReport
-    description: 'The result of the latest verification performed on the certificate'
-    required:
-    - status
-    - timestamp
-    properties:
-      status:
-        type: string
-        description: 'The status of the full verification'
-        enum:
-        - ok
-        - pending
-        - expired
-        - revoked
-        - failed
-        - error
-      timestamp:
-        type: number
-        title: datetime
-        description: 'The date of verification'
-        example: '2020-02-11T15:34:05.813289+00:00'
-    """
-    status: VerificationStatus
-    timestamp: datetime
+    :param created_date: The date the job was created
+    :type created_date: :class:`datetime.datetime`
 
+    :param scheduled_date: The date the job will be issued, if not yet issued
+    :type scheduled_date: :class:`datetime.datetime`, optional
 
-class StepStatus(Enum):
-    """
-    A representation of all status of a verification step
-    """
-    not_started = 'not_started'
-    passed = 'passed'
-    pending = 'pending'
-    failed = 'failed'
-    error = 'error'
+    :param start_date: The date the job started issuing
+    :type start_date: :class:`datetime.datetime`, optional
 
+    :param issued_date: The date the job was issued
+    :type issued_date: :class:`datetime.datetime`, optional
 
-class VerificationStepResult(NamedTuple):
-    """
-    Represents the result of one verification step
-    ---
-    required:
-    - name
-    - description
-    - status
-    properties:
-      name:
-        type: string
-        description: 'The name of the verification step'
-      description:
-        type: object
-        description: 'A description of the result of the verification step'
-        additionalProperties:
-          type:
-            type: string
-      status:
-        type: string
-        description: 'The status of the result'
-        enum:
-        - not_started
-        - passed
-        - pending
-        - failed
-        - error
-    """
-    name: str
-    description: Mapping[str, Optional[str]]
-    status: StepStatus
+    :param finished_date: The date the job issuing was confirmed on the blockchain
+    :type finished_date: :class:`datetime.datetime`, optional
 
-
-class VerificationResponseView(NamedTuple):
-    """
-     A Verification Response View to be returned by the API
-    ---
-    type: object
-    title: VerificationResponse
-    required:
-    - verification
-    properties:
-      verification:
-        type: array
-        items:
-          type: object
-          description: 'The combined result of all verification steps'
-          $ref: '#/definitions/VerificationStep'
-      result:
-        type: object
-        description: The final result of the verification
-        $ref: '#/definitions/VerificationReport'
-    """
-    verification: List[VerificationStepResult]
-    result: VerificationReport
-
-
-class CertificateView(NamedTuple):
-    """
-    A Certificate View to be returned by the API
-    ---
-    type: object
-    title: Certificate
-    required:
-    - certificate
-    properties:
-      certificate:
-        $ref: '#/definitions/Claim'
-      revoked_date:
-        type: string
-        format: date
-        title: datetime
-        example: '2020-02-11T15:34:05.813217+00:00'
-        description: 'The revoked date of the certificate, if applicable'
-      last_verification:
-        $ref: '#/definitions/VerificationReport'
-    """
-    certificate: ClaimView
-    revoked_date: Optional[datetime]
-    last_verification: Optional[VerificationReport]
-
-
-class CurrencyAmountView(NamedTuple):
-    """
-    A Currency Amount View to be returned by the API
-
-    """
-    amount: float
-    currency: str
-
-
-class JobStatus(Enum):
-    """
-    A representation of all possible status of a Job
-    """
-    failed = 'failed'
-    started = 'started'
-    unconfirmed = 'unconfirmed'
-    pending = 'pending'
-    finished = 'finished'
-    scheduled = 'scheduled'
-
-
-class JobView(NamedTuple):
-    """
-    A Job View to be returned by the API
-    ---
-    required:
-    - uid
-    - partner
-    - chain
-    - tags
-    - status
-    - created_date
-    properties:
-      uid:
-        type: string
-        title: uuid
-        example: 123e4567-e89b-12d3-a456-426655440000
-        description: 'The job uid'
-      partner:
-        $ref: '#/definitions/Partner'
-      chain:
-        type: string
-        description: 'The blockchain the Job was issued on'
-      tags:
-        type: array
-        description: 'A list of tags to identify the job'
-        items:
-          type: string
-      status:
-        type: string
-        description: 'The current status of the Job'
-        enum:
-        - failed
-        - started
-        - awaiting_confirmations
-        - ready
-      start_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.814703+00:00'
-        description: 'The date the Job was started'
-      issued_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.814719+00:00'
-        description: 'The date of issuing, if successful'
-      finished_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.814731+00:00'
-        description: 'The date of confirmation, if successful'
-      failed_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.814743+00:00'
-        description: 'The date of failure, if the issuing failed'
-      created_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.814743+00:00'
-        description: 'The date on which the job was created'
-      scheduled_date:
-        type: number
-        title: datetime
-        example: '2020-02-11T15:34:05.814743+00:00'
-        description: 'The date on which the job is scheduled to be issued'
-
+    :param failed_date: The date the job issuing failed, if applicable
+    :type failed_date: :class:`datetime.datetime`, optional
     """
     uid: UUID
-    partner: PartnerView
+    partner: Partner
     chain: str
     tags: List[str]
     status: JobStatus
@@ -491,3 +207,153 @@ class JobView(NamedTuple):
     issued_date: Optional[datetime] = None
     finished_date: Optional[datetime] = None
     failed_date: Optional[datetime] = None
+
+
+class VerificationStepResult(NamedTuple):
+    """
+    Object representing the result of a step of the verification process.
+
+    :param name: The name of the step
+    :type name: str
+
+    :param description: The result of the verification step, containing several fields and values
+    :type description: dict
+
+    :param status: The final status of the step
+    :type status: :class:`vdx_helper.StepStatus`
+    """
+    name: str
+    description: Mapping[str, Optional[str]]
+    status: StepStatus
+
+
+class VerificationResult(NamedTuple):
+    """
+    Object representing the final result of the verification of a certificate, not including the individual result of
+    each step.
+
+    :param status: The status of the verification
+    :type status: :class:`vdx_helper.domain.VerificationStatus`
+
+    :param timestamp: The date of the verification
+    :type timestamp: :class:`datetime.datetime`
+    """
+    status: VerificationStatus
+    timestamp: datetime
+
+
+class Verification(NamedTuple):
+    """
+    Object representing the result of a verification returned from the API, including all steps.
+
+    :param verification: The list of all verification steps
+    :type verification: List[:class:`VerificationStepResult`]
+
+    :param result: The result of the verification
+    :type result: :class:`VerificationResult`
+    """
+    verification: List[VerificationStepResult]
+    result: VerificationResult
+
+
+class Claim(NamedTuple):
+    """
+    Object representing a Credential returned by the Core API.
+    A Claim has all data directly related to the issued Certificate.
+
+    :param uid: The uid of the certificate
+    :type uid: :class:`uuid.UUID`
+
+    :param partner: The partner who issued the certificate
+    :type partner: :class:`Partner`
+
+    :param credential: The credential that was issued
+    :type credential: :class:`Credential`
+
+    :param issued_date: Date of issuing on the Blockchain
+    :type issued_date: :class:`datetime.datetime`
+
+    :param signature: Signed content of the credential by the partner's issuing key
+    :type signature: str
+    """
+    uid: UUID
+    partner: Partner
+    credential: Credential
+    issued_date: datetime
+    signature: str
+
+    def __eq__(self, obj: 'Claim'):
+        """
+        Overriding of the equals method for simplified comparison between Claim objects.
+
+        :param obj: The other instance of a claim object
+        :type obj: :class:`Claim`
+
+        :return: True if the two objects are equal
+        :rtype: bool
+        """
+        return isinstance(obj, Claim) and obj.uid == self.uid
+
+
+class Certificate(NamedTuple):
+    """
+    Object representing a Certificate returned by the Core API.
+
+    :param certificate: The details and data of the certificate and respective credential
+    :type certificate: :class:`Claim`
+
+    :param revoked_date: The date of revocation, if applicable
+    :type revoked_date: :class:`datetime.datetime`, optional
+
+    :param last_verification: The result of the latest verification of the certificate
+    :type last_verification: :class:`VerificationResult`
+    """
+    certificate: Claim
+    revoked_date: Optional[datetime]
+    last_verification: Optional[VerificationResult]
+
+
+class PaginatedResponse(NamedTuple, Generic[T]):
+    """
+    Object representing a paginated response from the API.
+    from the API
+
+    :param page: The page the items are from
+    :type page: int
+
+    :param total_pages: The total number of pages
+    :type total_pages: int
+
+    :param per_page: The number of items returned per page
+    :type per_page: int
+
+    :param total_items: The total number of items
+    :type total_items: int
+
+    :param items: The list of objects returned by the API
+    :type items: List[T]
+    """
+    page: int
+    total_pages: int
+    per_page: int
+    total_items: int
+    items: List[T]
+
+    def __eq__(self, obj: 'PaginatedResponse'):
+        """
+        Overriding of the equals method for simplified comparison between Paginated objects.
+
+        :param obj: The other instance of a paginated object
+        :type obj: :class:`PaginatedResponse`
+
+        :return: True if the two objects are equal
+        :rtype: bool
+        """
+        return (
+                isinstance(obj, PaginatedResponse)
+                and obj.page == self.page
+                and obj.total_pages == self.total_pages
+                and obj.per_page == self.per_page
+                and obj.total_items == self.total_items
+                and all(first == second for first, second in zip(obj.items, self.items))
+        )
