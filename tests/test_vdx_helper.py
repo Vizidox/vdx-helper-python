@@ -6,7 +6,7 @@ from typing import Callable
 from unittest.mock import patch, MagicMock, PropertyMock
 from uuid import UUID
 
-from tests.json_responses import file_json, mapped_file, mapped_engine_permissions, engine_json, credential_json, \
+from tests.json_responses import file_json, mapped_file, credential_json, \
     mapped_credential, paginated_credential, mapped_paginated_credential, job_json, mapped_job, paginated_job, \
     mapped_paginated_job, verification_response_json, mapped_verification, mapped_paginated_certificate, \
     paginated_certificate, paginated_file, mapped_paginated_file
@@ -105,31 +105,6 @@ class VdxHelperTest(unittest.TestCase):
             return new_json
 
         return test_mapper
-
-    @patch('vdx_helper.vdx_helper.VDXHelper.header')
-    @patch('vdx_helper.vdx_helper.requests')
-    def test_get_partner_permissions(self, requests, header):
-        vdx_helper = self.get_vdx_helper()
-        response = MagicMock()
-        response.json.return_value = engine_json
-        requests.get.return_value = response
-        # OK status
-        response.status_code = HTTPStatus.OK
-        permissions = vdx_helper.get_partner_permissions()
-        self.assertListEqual(permissions, mapped_engine_permissions)
-
-        # not OK status
-        permissions = None
-        response.status_code = HTTPStatus.CONFLICT
-        try:
-            permissions = vdx_helper.get_partner_permissions()
-        except VDXError:
-            self.assertIsNone(permissions)
-
-        # json mapper
-        response.status_code = HTTPStatus.OK
-        permissions = vdx_helper.get_partner_permissions(mapper=json_mapper)
-        self.assertListEqual(permissions, engine_json)
 
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')

@@ -1,6 +1,6 @@
 {
   "info": {
-    "version": "7.0.1",
+    "version": "8.0.0",
     "title": "vizidox",
     "description": "",
     "termsOfService": "/tos"
@@ -214,8 +214,8 @@
               }
             }
           },
-          "422": {
-            "description": "wrong_blockchain_engine",
+          "409": {
+            "description": "credential_already_scheduled_or_issued",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -233,8 +233,27 @@
               }
             }
           },
-          "409": {
-            "description": "credential_already_scheduled_or_issued",
+          "415": {
+            "description": "no_json",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_blockchain_engine | missing_field",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -299,130 +318,6 @@
         "operationId": "schedule_credentials"
       }
     },
-    "/api/admin/secret": {
-      "get": {
-        "summary": "Get api secret",
-        "description": "Get an API secret to be used in your application",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "string"
-            }
-          },
-          "404": {
-            "description": "missing_auth_id",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "502": {
-            "description": "unavailable_auth",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "admin"
-        ],
-        "security": [
-          {
-            "user_auth": [
-              "openid"
-            ]
-          }
-        ],
-        "operationId": "get_api_secret"
-      },
-      "post": {
-        "summary": "Reset api secret",
-        "description": "Revokes current API secret and creates a new one",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "string"
-            }
-          },
-          "404": {
-            "description": "missing_partner | missing_auth_id",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "502": {
-            "description": "unavailable_auth",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "admin"
-        ],
-        "security": [
-          {
-            "user_auth": [
-              "openid"
-            ]
-          }
-        ],
-        "operationId": "reset_api_secret"
-      }
-    },
     "/api/jobs/immediate": {
       "post": {
         "summary": "Issue job",
@@ -471,8 +366,46 @@
               }
             }
           },
+          "415": {
+            "description": "no_json",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "wrong_blockchain_engine",
+            "description": "wrong_blockchain_engine | missing_field",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "insufficient_funds | try_again_later",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -754,6 +687,44 @@
                 }
               }
             }
+          },
+          "415": {
+            "description": "no_json",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "missing_field",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -800,7 +771,7 @@
                   "items": {
                     "type": "string",
                     "minLength": 3,
-                    "maxLength": 200
+                    "maxLength": 20
                   }
                 },
                 "expiry_date": {
@@ -815,10 +786,10 @@
         "tags": [
           "credential"
         ],
-        "produces": [
+        "consumes": [
           "application/json"
         ],
-        "consumes": [
+        "produces": [
           "application/json"
         ],
         "security": [
@@ -981,6 +952,25 @@
               "properties": {}
             }
           },
+          "400": {
+            "description": "invalid_tag | duplicated_tags",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "404": {
             "description": "missing_credential",
             "schema": {
@@ -1069,7 +1059,7 @@
             }
           },
           "400": {
-            "description": "invalid_tag",
+            "description": "invalid_tag | duplicated_tags",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -1162,33 +1152,6 @@
           }
         ],
         "operationId": "put_credential"
-      }
-    },
-    "/api/engines": {
-      "get": {
-        "summary": "Get engines",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/EnginePermissions"
-            }
-          }
-        },
-        "tags": [
-          "engine"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "security": [
-          {
-            "client_auth": [
-              ""
-            ]
-          }
-        ],
-        "operationId": "get_engines"
       }
     },
     "/api/files": {
@@ -1313,6 +1276,25 @@
           },
           "400": {
             "description": "no_file_on_payload",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "file_already_exists",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -1591,6 +1573,25 @@
               "properties": {}
             }
           },
+          "400": {
+            "description": "invalid_tag | duplicated_tags",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "404": {
             "description": "missing_job",
             "schema": {
@@ -1676,6 +1677,25 @@
             "schema": {
               "type": "object",
               "properties": {}
+            }
+          },
+          "400": {
+            "description": "invalid_tag | duplicated_tags",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
             }
           },
           "404": {
@@ -1825,25 +1845,6 @@
               "example": "2020-02-11T15:34:05.814607+00:00"
             }
           },
-          "403": {
-            "description": "certificate_already_revoked",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          },
           "404": {
             "description": "missing_certificate",
             "schema": {
@@ -1864,7 +1865,7 @@
             }
           },
           "409": {
-            "description": "unconfirmed_certificate_transaction",
+            "description": "unconfirmed_certificate_transaction | certificate_already_revoked",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -1939,6 +1940,25 @@
               "type": "object",
               "properties": {}
             }
+          },
+          "404": {
+            "description": "missing_credential | tag_does_not_exist",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -1989,25 +2009,6 @@
               "example": "2020-02-11T15:34:05.814607+00:00"
             }
           },
-          "403": {
-            "description": "certificate_already_revoked",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          },
           "404": {
             "description": "missing_credential | missing_certificate_by_credential",
             "schema": {
@@ -2028,7 +2029,7 @@
             }
           },
           "409": {
-            "description": "unconfirmed_certificate_transaction",
+            "description": "unconfirmed_certificate_transaction | certificate_already_revoked",
             "schema": {
               "type": "object",
               "title": "error message",
@@ -2204,61 +2205,6 @@
         "operationId": "verify_by_credential_uid"
       }
     },
-    "/api/files/{file_hash}": {
-      "get": {
-        "summary": "Get file",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/File"
-            }
-          },
-          "404": {
-            "description": "missing_file",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "file_hash",
-            "in": "path",
-            "type": "string",
-            "required": true,
-            "description": "file hash",
-            "example": "5998f4893dd69f99d04ec4a7741c7"
-          }
-        ],
-        "tags": [
-          "file"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "security": [
-          {
-            "client_auth": [
-              ""
-            ]
-          }
-        ]
-      }
-    },
     "/api/jobs/{job_uid}/certificates": {
       "get": {
         "summary": "Get job certificates",
@@ -2414,7 +2360,7 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "title": "Paginated",
+              "title": "PaginatedView",
               "properties": {
                 "page": {
                   "type": "integer",
@@ -2436,7 +2382,6 @@
                   "type": "array",
                   "items": {
                     "type": "object",
-                    "title": "Credential",
                     "$ref": "#/definitions/Credential"
                   }
                 }
@@ -2664,6 +2609,61 @@
           }
         ],
         "operationId": "verify_by_uid"
+      }
+    },
+    "/api/files/{file_hash}": {
+      "get": {
+        "summary": "Get file",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/File"
+            }
+          },
+          "404": {
+            "description": "missing_file",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "file_hash",
+            "in": "path",
+            "type": "string",
+            "required": true,
+            "description": "file hash",
+            "example": "5998f4893dd69f99d04ec4a7741c7"
+          }
+        ],
+        "tags": [
+          "file"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ]
       }
     },
     "/api/ping/{n}": {
@@ -2928,34 +2928,6 @@
         }
       }
     },
-    "EnginePermissions": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "title": "EnginePermissions",
-        "required": [
-          "name",
-          "is_allowed",
-          "show_prices"
-        ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The blockchain engine name",
-            "example": "bitcoin"
-          },
-          "is_allowed": {
-            "type": "boolean",
-            "description": "The partner's access to issuing on the blockchain"
-          },
-          "show_prices": {
-            "type": "boolean",
-            "description": "The partner's access to the currency issuing price"
-          }
-        }
-      },
-      "description": "An Engine Permission View to be returned by the API"
-    },
     "VerificationReport": {
       "type": "object",
       "title": "VerificationReport",
@@ -2986,38 +2958,6 @@
         }
       }
     },
-    "VerificationStep": {
-      "required": [
-        "name",
-        "description",
-        "status"
-      ],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The name of the verification step"
-        },
-        "description": {
-          "type": "object",
-          "description": "A description of the result of the verification step",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the result",
-          "enum": [
-            "not_started",
-            "passed",
-            "pending",
-            "failed",
-            "error"
-          ]
-        }
-      },
-      "description": "Represents the result of one verification step"
-    },
     "VerificationResponse": {
       "type": "object",
       "title": "VerificationResponse",
@@ -3031,7 +2971,36 @@
           "items": {
             "type": "object",
             "description": "The results of all verification steps",
-            "$ref": "#/definitions/VerificationStep"
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the verification step",
+                "example": "Checking Certificate Integrity"
+              },
+              "description": {
+                "type": "object",
+                "description": "A description of the result of the verification step",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "example": {
+                  "hash_function": "SHA256",
+                  "actual_hash": "dca17292881ce53aa182f7f48b3dd6ca15e6c1ff8e93588126ca4b423128ac14"
+                }
+              },
+              "status": {
+                "type": "string",
+                "description": "The status of the result",
+                "enum": [
+                  "not_started",
+                  "passed",
+                  "pending",
+                  "failed",
+                  "error"
+                ],
+                "example": "passed"
+              }
+            }
           }
         },
         "result": {
@@ -3227,17 +3196,5 @@
       "description": "A Job View to be returned by the API"
     }
   },
-  "swagger": "2.0",
-  "securityDefinitions": {
-    "client_auth": {
-      "type": "oauth2",
-      "flow": "application",
-      "tokenUrl": "http://localhost:8181/auth/realms/vizidox/protocol/openid-connect/token"
-    },
-    "user_auth": {
-      "type": "oauth2",
-      "flow": "implicit",
-      "authorizationUrl": "http://localhost:8181/auth/realms/vizidox/protocol/openid-connect/auth"
-    }
-  }
+  "swagger": "2.0"
 }

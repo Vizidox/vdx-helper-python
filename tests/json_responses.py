@@ -2,25 +2,8 @@ from datetime import datetime
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
-from vdx_helper.models import File, EnginePermission, Credential, PaginatedResponse, Job, Partner, \
-    Verification, VerificationStepResult, Certificate, Claim, \
-    VerificationResult
-
-engine_json = [
-    {
-        "name": "bitcoin",
-        "is_allowed": "true",
-        "show_prices": "true"
-    },
-    {
-        "name": "dogecoin",
-        "is_allowed": "false",
-        "show_prices": "false"
-    }
-]
-
-mapped_engine_permissions = [EnginePermission(name="bitcoin", is_allowed=True, show_prices=True),
-                             EnginePermission(name="dogecoin", is_allowed=False, show_prices=False)]
+from vdx_helper.models import File, Credential, PaginatedResponse, Job, Partner, VerificationStepResult, Certificate, \
+    Claim, VerificationReport, VerificationResponse
 
 file_json = {
     "file_hash": "hash",
@@ -128,7 +111,7 @@ mapped_verification_step_2 = VerificationStepResult(name='Checking revocation da
                                                     status=StepStatus.failed)
 
 
-mapped_verification_report = VerificationResult(status=VerificationStatus.ok,
+mapped_verification_report = VerificationReport(status=VerificationStatus.ok,
                                                 timestamp=datetime.fromisoformat("2020-02-11T15:34:05.813289+00:00"))
 
 verification_result_json = {
@@ -152,8 +135,8 @@ verification_response_json = {
     "result": verification_result_json
 }
 
-mapped_verification = Verification([mapped_verification_step_1, mapped_verification_step_2],
-                                   mapped_verification_report)
+mapped_verification = VerificationResponse([mapped_verification_step_1, mapped_verification_step_2],
+                                           mapped_verification_report)
 
 certificate_json = {
     "certificate": {
