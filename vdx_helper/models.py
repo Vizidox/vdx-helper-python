@@ -7,39 +7,6 @@ from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
 T = TypeVar('T')
 
 
-class EnginePermission(NamedTuple):
-    """
-    Object representing the current permission status to use a specific Blockchain engine.
-
-    :param name: The Blockchain engine name
-    :type name: str
-
-    :param is_allowed: Flag indicating if the partner can use the specific engine
-    :type is_allowed: bool
-
-    :param show_prices: Flag indicating if the partner can view the issuing price on the engine
-    :type show_prices: bool
-    """
-    name: str
-    is_allowed: bool
-    show_prices: bool
-
-    def __eq__(self, obj: 'EnginePermission'):
-        """
-        Overriding of the equals method for simplified comparison between Engine Permission objects.
-
-        :param obj: The other instance of an engine permission object
-        :type obj: :class:`EnginePermission`
-
-        :return: True if the two objects are equal
-        :rtype: bool
-        """
-        return isinstance(obj, EnginePermission) \
-               and obj.name == self.name \
-               and obj.is_allowed == self.is_allowed \
-               and obj.show_prices == self.show_prices
-
-
 class Partner(NamedTuple):
     """
     A Partner object returned by the Core API.
@@ -227,7 +194,7 @@ class VerificationStepResult(NamedTuple):
     status: StepStatus
 
 
-class VerificationResult(NamedTuple):
+class VerificationReport(NamedTuple):
     """
     Object representing the final result of the verification of a certificate, not including the individual result of
     each step.
@@ -242,7 +209,7 @@ class VerificationResult(NamedTuple):
     timestamp: datetime
 
 
-class Verification(NamedTuple):
+class VerificationResponse(NamedTuple):
     """
     Object representing the result of a verification returned from the API, including all steps.
 
@@ -250,10 +217,10 @@ class Verification(NamedTuple):
     :type verification: List[:class:`VerificationStepResult`]
 
     :param result: The result of the verification
-    :type result: :class:`VerificationResult`
+    :type result: :class:`VerificationReport`
     """
     verification: List[VerificationStepResult]
-    result: VerificationResult
+    result: VerificationReport
 
 
 class Claim(NamedTuple):
@@ -306,11 +273,11 @@ class Certificate(NamedTuple):
     :type revoked_date: :class:`datetime.datetime`, optional
 
     :param last_verification: The result of the latest verification of the certificate
-    :type last_verification: :class:`VerificationResult`
+    :type last_verification: :class:`VerificationReport`
     """
     certificate: Claim
     revoked_date: Optional[datetime]
-    last_verification: Optional[VerificationResult]
+    last_verification: Optional[VerificationReport]
 
 
 class PaginatedResponse(NamedTuple, Generic[T]):

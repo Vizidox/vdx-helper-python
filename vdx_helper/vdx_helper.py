@@ -2,14 +2,13 @@ import io
 import time
 from datetime import datetime
 from http import HTTPStatus
-from typing import Optional, Callable, Any, Dict, TypeVar, Tuple, List, Union, Iterable, Hashable, BinaryIO
+from typing import Optional, Callable, Dict, TypeVar, Tuple, List, Iterable, BinaryIO
 from uuid import UUID
 
 import requests
 from nndict import nndict
-
 from vdx_helper.errors import error_from_response, VDXError
-from vdx_helper.mappers import permissions_mapper, file_mapper, get_paginated_mapper, credential_mapper, job_mapper, \
+from vdx_helper.mappers import file_mapper, get_paginated_mapper, credential_mapper, job_mapper, \
     certificate_mapper, verification_mapper
 from vdx_helper.util import optional_uuid_to_string, optional_uuids_to_string, datetime_from_string, uuids_to_string
 
@@ -108,23 +107,6 @@ class VDXHelper:
             "Authorization": "Bearer " + self._token,
             "Accept": "application/json"
         }
-
-    def get_partner_permissions(self, mapper: Callable[[dict], T] = permissions_mapper) -> T:
-        """
-        Obtain the current engine permissions for the partner.
-
-        :param mapper: Optional mapper to change the format of the endpoint response
-        :type mapper: :class:`typing.Callable`
-
-        :return: The result of the endpoint call
-        :rtype: :class:`T`
-        """
-        response = requests.get(f"{self.api_url}/engines", headers=self.header)
-
-        status = HTTPStatus(response.status_code)
-        if status is not HTTPStatus.OK:
-            raise error_from_response(status, response)
-        return mapper(response.json())
 
     def upload_file(self,
                     file_stream: BinaryIO,

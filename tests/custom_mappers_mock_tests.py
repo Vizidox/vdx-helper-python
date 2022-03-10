@@ -1,24 +1,10 @@
 from datetime import datetime
-from typing import List
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
 from vdx_helper.mappers import file_mapper, credential_mapper, partner_mapper
-from vdx_helper.models import EnginePermission, Credential, Job, Verification, VerificationStepResult, Certificate, \
-    Claim, VerificationResult
-
-
-def custom_permissions_mapper(json_: dict) -> List[EnginePermission]:
-    permissions = []
-    for json_permission in json_:
-        permission = EnginePermission(
-            name=json_permission['name'],
-            is_allowed=json_permission['is_allowed'],
-            # for some reason prism generates "python valid booleans" so no need for conversion
-            show_prices=json_permission["show_prices"]
-        )
-        permissions.append(permission)
-    return permissions
+from vdx_helper.models import Credential, Job, VerificationResponse, VerificationStepResult, Certificate, \
+    Claim, VerificationReport
 
 
 def custom_credential_mapper(json_: dict) -> Credential:
@@ -51,8 +37,8 @@ def custom_job_mapper(json_: dict) -> Job:
     )
 
 
-def custom_verification_mapper(json_: dict) -> Verification:
-    return Verification(
+def custom_verification_mapper(json_: dict) -> VerificationResponse:
+    return VerificationResponse(
         verification=[custom_verification_step_mapper(step) for step in json_["verification"]],
         result=custom_verification_report_mapper(json_["result"])
     )
@@ -85,8 +71,8 @@ def custom_claim_mapper(json_: dict) -> Claim:
     )
 
 
-def custom_verification_report_mapper(json_: dict) -> VerificationResult:
-    return VerificationResult(
+def custom_verification_report_mapper(json_: dict) -> VerificationReport:
+    return VerificationReport(
         status=VerificationStatus[json_["status"]],
         timestamp=datetime.fromisoformat(json_["timestamp"])
     )

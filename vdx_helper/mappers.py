@@ -1,12 +1,11 @@
 from datetime import datetime
-from json import loads
-from typing import List, TypeVar, Callable
+from typing import TypeVar, Callable
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
-from vdx_helper.models import EnginePermission, File, PaginatedResponse, Credential, Job, Verification, \
+from vdx_helper.models import File, PaginatedResponse, Credential, Job, VerificationResponse, \
     VerificationStepResult, Certificate, Claim, Partner, \
-    VerificationResult
+    VerificationReport
 from vdx_helper.util import optional_datetime_from_string
 
 T = TypeVar('T')
@@ -46,37 +45,15 @@ def get_paginated_mapper(mapper: Callable[[dict], T]) -> Callable[[dict], 'Pagin
         :return: A Paginated Response instance
         :rtype: class:`vdx_helper.models.PaginatedResponse`
         """
-        paginated_response = PaginatedResponse(
+        return PaginatedResponse(
             page=int(json_["page"]),
             total_pages=int(json_["total_pages"]),
             per_page=int(json_["per_page"]),
             total_items=int(json_["total_items"]),
             items=[mapper(json_item) for json_item in json_["items"]]
         )
-        return paginated_response
 
     return paginated_mapper
-
-
-def permissions_mapper(json_: dict) -> List[EnginePermission]:
-    """
-    Maps the json partner permissions response into a list of EnginePermission objects.
-
-    :param json_: The json obtained from the endpoint call
-    :type json_: dict
-
-    :return: A list of EnginePermission instances
-    :rtype: List[:class:`vdx_helper.models.EnginePermission`]
-    """
-    permissions = []
-    for json_permission in json_:
-        permission = EnginePermission(
-            name=json_permission['name'],
-            is_allowed=loads(json_permission['is_allowed']),
-            show_prices=loads(json_permission["show_prices"])
-        )
-        permissions.append(permission)
-    return permissions
 
 
 def file_mapper(json_: dict) -> File:
@@ -142,17 +119,17 @@ def job_mapper(json_: dict) -> Job:
     )
 
 
-def verification_mapper(json_: dict) -> Verification:
+def verification_mapper(json_: dict) -> VerificationResponse:
     """
-    Maps the json verification response response into a Verification object.
+    Maps the json verification response into a VerificationResponse object.
 
     :param json_: The json obtained from the endpoint call
     :type json_: dict
 
-    :return: A Verification instance
-    :rtype: :class:`vdx_helper.models.Verification`
+    :return: A VerificationResponse instance
+    :rtype: :class:`vdx_helper.models.VerificationResponse`
     """
-    return Verification(
+    return VerificationResponse(
         verification=[verification_step_mapper(step) for step in json_["verification"]],
         result=verification_report_mapper(json_["result"])
     )
@@ -227,17 +204,17 @@ def certificate_mapper(json_: dict) -> Certificate:
     )
 
 
-def verification_report_mapper(json_: dict) -> VerificationResult:
+def verification_report_mapper(json_: dict) -> VerificationReport:
     """
     Maps the json verification report response into a Verification Report object.
 
     :param json_: The json obtained from the endpoint call
     :type json_: dict
 
-    :return: A VerificationResult instance
-    :rtype: :class:`vdx_helper.models.VerificationResult`
+    :return: A VerificationReport instance
+    :rtype: :class:`vdx_helper.models.VerificationReport`
     """
-    return VerificationResult(
+    return VerificationReport(
         status=VerificationStatus(json_["status"]),
         timestamp=datetime.fromisoformat(json_["timestamp"])
     )

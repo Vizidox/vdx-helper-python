@@ -6,8 +6,7 @@ from uuid import UUID
 
 import requests
 from testcontainers.compose import DockerCompose
-
-from tests.custom_mappers_mock_tests import custom_permissions_mapper, custom_credential_mapper, custom_job_mapper, \
+from tests.custom_mappers_mock_tests import custom_credential_mapper, custom_job_mapper, \
     custom_verification_mapper, custom_certificate_mapper
 from vdx_helper.errors import error_from_response
 from vdx_helper.mappers import get_paginated_mapper, file_mapper
@@ -51,13 +50,6 @@ class ClientMockServerTest(TestCase):
     def tearDownClass(cls) -> None:
         if cls.mock_server is not None:
             cls.mock_server.stop()
-
-    @patch('vdx_helper.vdx_helper.VDXHelper._token', new_callable=PropertyMock)
-    def test_get_partner_permissions(self, _token) -> None:
-        _token.return_value = "vizidox-authorization"
-        vdx_helper = self.get_vdx_helper()
-        permissions = vdx_helper.get_partner_permissions(mapper=custom_permissions_mapper)
-        assert permissions is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._token', new_callable=PropertyMock)
     def test_get_files(self, _token) -> None:

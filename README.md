@@ -57,14 +57,12 @@ poetry run pytest --cov=vdx_helper
 ```
 docker-compose up -d
 ```
-2. Open an interactive bash shell inside the container containing the api as well as unittests
+
+2. Run the tests via the vdx-helper docker container
 ```
-docker exec -it local_api bash
+docker-compose run vdx-helper pytest tests
 ```
-3. Once we are inside the container, run the code below to run unittests
-```
-python -m tests
-```
+
 
 ## Documentation
 
