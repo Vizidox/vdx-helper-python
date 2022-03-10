@@ -130,7 +130,7 @@ def verification_mapper(json_: dict) -> VerificationResponse:
     :rtype: :class:`vdx_helper.models.VerificationResponse`
     """
     return VerificationResponse(
-        verification=[verification_step_mapper(step) for step in json_["verification"]],
+        verification={key: verification_step_mapper(step) for key, step in json_["verification"]},
         result=verification_report_mapper(json_["result"])
     )
 
