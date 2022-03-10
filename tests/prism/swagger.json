@@ -2967,10 +2967,10 @@
       ],
       "properties": {
         "verification": {
-          "type": "array",
-          "items": {
+          "type": "object",
+          "description": "The results of all verification steps",
+          "additionalProperties": {
             "type": "object",
-            "description": "The results of all verification steps",
             "properties": {
               "name": {
                 "type": "string",
