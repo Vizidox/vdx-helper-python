@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import NamedTuple, Optional, List, Mapping, Generic, TypeVar
+from typing import NamedTuple, Optional, List, Mapping, Generic, TypeVar, Dict
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
@@ -214,12 +214,12 @@ class VerificationResponse(NamedTuple):
     Object representing the result of a verification returned from the API, including all steps.
 
     :param verification: The list of all verification steps
-    :type verification: List[:class:`VerificationStepResult`]
+    :type verification: Dict[str, :class:`VerificationStepResult`]
 
     :param result: The result of the verification
     :type result: :class:`VerificationReport`
     """
-    verification: List[VerificationStepResult]
+    verification: Dict[str, VerificationStepResult]
     result: VerificationReport
 
 

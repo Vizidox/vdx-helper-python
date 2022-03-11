@@ -120,22 +120,22 @@ verification_result_json = {
     }
 
 verification_response_json = {
-    "verification": [
-        {
+    "verification": {
+        "step1": {
             "name": mapped_verification_step_1.name,
             "description": mapped_verification_step_1.description,
             "status": mapped_verification_step_1.status.name
         },
-        {
+        "step2": {
             "name": mapped_verification_step_2.name,
             "description": mapped_verification_step_2.description,
             "status": mapped_verification_step_2.status.name
         }
-    ],
+    },
     "result": verification_result_json
 }
 
-mapped_verification = VerificationResponse([mapped_verification_step_1, mapped_verification_step_2],
+mapped_verification = VerificationResponse({"step1": mapped_verification_step_1, "step2": mapped_verification_step_2},
                                            mapped_verification_report)
 
 certificate_json = {
