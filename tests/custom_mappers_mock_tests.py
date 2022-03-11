@@ -39,7 +39,7 @@ def custom_job_mapper(json_: dict) -> Job:
 
 def custom_verification_mapper(json_: dict) -> VerificationResponse:
     return VerificationResponse(
-        verification=[custom_verification_step_mapper(step) for step in json_["verification"]],
+        verification={key: custom_verification_step_mapper(step) for key, step in json_["verification"].items()},
         result=custom_verification_report_mapper(json_["result"])
     )
 
