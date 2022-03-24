@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vdx-helper"
-version = "3.1.1"
+version = "3.1.2"
 description = ""
 authors = ["Joana Teixeira <joana.teixeira@vizidox.com>", "Tiago Santos <tiago.santos@vizidox.com>",
 "Hieu Le <hieu.le@morphotech.co.uk>", "Rita Mariquitos <rita.mariquitos@morphotech.co.uk>"]
