@@ -9,22 +9,22 @@ Each method also allows one to include their own custom mappers, enabling the me
 
 ## Prerequisites
 
-- Python poetry
-- Docker + docker-compose
+- Python Poetry
+- Docker + Docker-compose
 
 ## Usage
 
 ### Initialization
 
 Required parameters: 
-- url: The url leading to Core Api server
-- keycloak_url: The url leading to keycloak server
-- core_api_key: client secret from keycloak (reference here: https://bitbucket.org/morphoVDX/keycloak-admin-client-python/pull-requests/2/feature-vdx-502-docker-config/diff#chg-README.md)
-- core_api_client_id: client id
+- api_url: The url leading to Core Api server
+- auth_url: The url leading to keycloak server
+- client_secret: client secret from keycloak (reference here: https://bitbucket.org/morphoVDX/keycloak-admin-client-python/pull-requests/2/feature-vdx-502-docker-config/diff#chg-README.md)
+- client_id: client id
 
 
 ```
-vdx_helper = VDXHelper(url='http://vizidox-core-api.com', keycloak_url='http://keycloak.com', core_api_key=here_is_the_client_secret, core_api_client_id=here_is_the_client_id)
+vdx_helper = VDXHelper(api_url='http://vizidox-core-api.com', auth_url='http://keycloak.com', client_secret=secret, client_id=client_id)
 ```
 
 ### Mapper example
@@ -35,7 +35,6 @@ def example_mapper(json_file):
     returned_json = copy.deepcopy(json_file)
     returned_json['additional_field'] = 'additional_value'
     return returned_json
-
 ```
 
 ### Usage example
