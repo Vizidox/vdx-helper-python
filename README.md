@@ -19,8 +19,8 @@ Each method also allows one to include their own custom mappers, enabling the me
 Required parameters: 
 - api_url: The url leading to Core API server
 - auth_url: The url leading to authentication server
-- client_secret: client secret
-- client_id: client id
+- client_secret: The authentication secret
+- client_id: The ID of the client / partner
 
 
 ```
