@@ -20,12 +20,12 @@ sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 
 project = 'vdx-helper-py'
-copyright = '2021, Vizidox Solutions Limited'
+copyright = '2022, Vizidox Solutions Limited'
 author = 'Joana Teixeira, Rita Mariquitos, Joana Rocha'
 
 # The full version, including alpha/beta/rc tags
-release = '3.0.0'
-version = '3.0'
+release = '3.1.1'
+version = '3.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -59,7 +59,7 @@ html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
     'logo_only': True,
-    'display_version': False,
+    'display_version': True,
     'prev_next_buttons_location': 'None',
     'style_external_links': True,
     'style_nav_header_background': '#1B6470'
