@@ -1,12 +1,13 @@
 [tool.poetry]
 name = "vdx-helper"
-version = "3.1.3"
+version = "3.1.4"
 description = "Python client library to connect to the VDX Core API"
 authors = ["Joana Teixeira <joana.teixeira@vizidox.com>", "Tiago Santos <tiago.santos@vizidox.com>",
            "Rita Mariquitos <rita.mariquitos@morphotech.co.uk>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://vizidox.com"
+repository = "https://github.com/Morphotech/vdx-helper-python"
 documentation = "https://helper.vizidox.com/"
 classifiers = ["License :: OSI Approved :: MIT License",
                "Programming Language :: Python :: 3",
