@@ -1,4 +1,3 @@
-nexus_url = 'https://nexus.morphotech.co.uk/repository/pypi-hosted/'
 sonar_url = 'https://sonar.morphotech.co.uk'
 sonar_project_key = 'vdx-helper'
 sonar_analyzed_dir = 'vdx_helper'
@@ -32,7 +31,7 @@ pipeline {
         }
         stage('Push to Nexus') {
             steps {
-                sh "docker-compose run ${docker_image_tag} /bin/bash -c \"poetry config repositories.morphotech ${nexus_url}; poetry config http-basic.morphotech ${env.nexus_account} ${env.nexus_password}; poetry build; poetry publish -r morphotech\""
+                sh "docker-compose run ${docker_image_tag} /bin/bash -c \"poetry config pypi-token.pypi ${pypi_token}; poetry build; poetry publish -r morphotech\""
                 sh "docker push nexus.morphotech.co.uk/vdx-helper-docs:latest"
             }
         }
