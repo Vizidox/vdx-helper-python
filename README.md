@@ -17,18 +17,18 @@ Each method also allows one to include their own custom mappers, enabling the me
 ### Initialization
 
 Required parameters: 
-- api_url: The url leading to Core Api server
-- auth_url: The url leading to keycloak server
-- client_secret: client secret from keycloak (reference here: https://bitbucket.org/morphoVDX/keycloak-admin-client-python/pull-requests/2/feature-vdx-502-docker-config/diff#chg-README.md)
-- client_id: client id
+- api_url: The url leading to Core API server
+- auth_url: The url leading to authentication server
+- client_secret: The authentication secret
+- client_id: The ID of the client / partner
 
 
 ```
-vdx_helper = VDXHelper(api_url='http://vizidox-core-api.com', auth_url='http://keycloak.com', client_secret=secret, client_id=client_id)
+vdx_helper = VDXHelper(api_url='https://vizidox-core-api.com', auth_url='https://auth.com', client_secret=secret, client_id=client_id)
 ```
 
 ### Mapper example
-A mapper will receive a json-formatted parameter as their input. The following example mapper will add an additional field
+A mapper will receive a json-formatted parameter as their input. The following example mapper will add a field
 
 ```
 def example_mapper(json_file):
@@ -80,7 +80,6 @@ All source files are in docs/source, with vdx_helper containing the documentatio
 
 * **Tiago Santos** - *Initial work* - [Vizidox](https://vizidox.com)
 * **Joana Teixeira** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
-* **Lê Hồng Hiếu** - *Library definition* - [Vizidox](https://vizidox.com)
 * **Rita Mariquitos** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
 
 ## License
