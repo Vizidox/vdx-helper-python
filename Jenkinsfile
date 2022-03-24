@@ -31,7 +31,7 @@ pipeline {
         }
         stage('Push to Nexus') {
             steps {
-                sh "docker-compose run ${docker_image_tag} /bin/bash -c \"poetry config pypi-token.pypi ${pypi_token}; poetry build; poetry publish -r morphotech\""
+                sh "docker-compose run ${docker_image_tag} /bin/bash -c \"poetry config pypi-token.pypi ${pypi_token}; poetry build; poetry publish\""
                 sh "docker push nexus.morphotech.co.uk/vdx-helper-docs:latest"
             }
         }
