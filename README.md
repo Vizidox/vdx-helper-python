@@ -81,8 +81,3 @@ All source files are in docs/source, with vdx_helper containing the documentatio
 * **Tiago Santos** - *Initial work* - [Vizidox](https://vizidox.com)
 * **Joana Teixeira** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
 * **Rita Mariquitos** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
-
-## License
-
-All of the code developed in this project belongs to Vizidox Solutions Limited under the ownership of Freddy Elturk and 
-any distribution or use must be authorized and agreed upon previously.
