@@ -1,3 +1,6 @@
+[![PyPI version](https://badge.fury.io/py/vdx-helper.svg)](https://badge.fury.io/py/vdx-helper) 
+[![Downloads](https://static.pepy.tech/personalized-badge/vdx-helper?period=total&units=abbreviation&left_color=black&right_color=blue&left_text=Downloads)](https://pepy.tech/project/vdx-helper)
+
 # VDX Helper
 This repository provides a wrapper for every call made to VDX Core Api.
 
