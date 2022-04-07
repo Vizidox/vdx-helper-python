@@ -5,10 +5,9 @@
 This repository provides a wrapper for every call made to VDX Core Api.
 
 ## How it works
-This helper first needs to be authorized by wielding valid token from Keycloak, then use that token for further requests as long as it has not expired.
+This helper first needs to be authorized by wielding valid token from the authentication server, then use that token for further requests as long as it has not expired.
 
 Each method also allows one to include their own custom mappers, enabling the method to return the result in the format the user wishes.
-![workflow illustration](docs/images/vdx-helper.png)
 
 ## Prerequisites
 
