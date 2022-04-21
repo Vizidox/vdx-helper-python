@@ -54,7 +54,7 @@ poetry run pytest --cov=vdx_helper
 ```
 
 ### Run the test locally with docker-compose step-by-step
-1. Turn up the docker-containers
+1. Spin up the docker-containers
 ```
 docker-compose up -d
 ```
