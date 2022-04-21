@@ -1,15 +1,14 @@
-import copy
 import unittest
 from datetime import datetime
 from http import HTTPStatus
-from typing import Callable
 from unittest.mock import patch, MagicMock, PropertyMock
 from uuid import UUID
 
 from tests.json_responses import file_json, mapped_file, credential_json, \
     mapped_credential, paginated_credential, mapped_paginated_credential, job_json, mapped_job, paginated_job, \
     mapped_paginated_job, verification_response_json, mapped_verification, mapped_paginated_certificate, \
-    paginated_certificate, paginated_file, mapped_paginated_file
+    paginated_certificate, paginated_file, mapped_paginated_file, paginated_verification_response_json, \
+    mapped_paginated_verification, response_job_json, response_credential_json, verification_json, response_file_json
 from vdx_helper.errors import VDXError
 from vdx_helper.mappers import json_mapper
 from vdx_helper.vdx_helper import VDXHelper
@@ -98,14 +97,6 @@ class VdxHelperTest(unittest.TestCase):
         header = vdx_helper.header
         self.assertDictEqual(expected_header, header)
 
-    def new_mapper(self) -> Callable:
-        def test_mapper(json_: dict) -> dict:
-            new_json = copy.deepcopy(json_)
-            new_json['testing_key'] = 'testing_value'
-            return new_json
-
-        return test_mapper
-
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
     def test_upload_file(self, requests, header):
@@ -115,7 +106,7 @@ class VdxHelperTest(unittest.TestCase):
         stream = MagicMock()
 
         # response
-        response.json.return_value = file_json
+        response.json.return_value = response_file_json
         requests.post.return_value = response
 
         # OK status
@@ -169,7 +160,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         credentials = vdx_helper.get_credentials(mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/credentials", requests.get.call_args[0][0])
-        self.assertDictEqual(credentials, paginated_credential)
+        self.assertDictEqual(credentials, paginated_credential["result"])
 
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
     @patch('vdx_helper.vdx_helper.requests')
@@ -177,7 +168,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
-        response.json.return_value = credential_json
+        response.json.return_value = response_credential_json
         cred_uid = UUID('189e4e5c-833d-430b-9baa-5230841d997f')
 
         # OK case
@@ -207,7 +198,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.post.return_value = response
-        response.json.return_value = credential_json
+        response.json.return_value = response_credential_json
 
         title = 'title'
         metadata = {}
@@ -246,7 +237,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.post.return_value = response
-        response.json.return_value = job_json
+        response.json.return_value = response_job_json
         engine = 'dogecoin'
         # Success status
         response.status_code = HTTPStatus.CREATED
@@ -275,7 +266,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
-        response.json.return_value = job_json
+        response.json.return_value = response_job_json
         job_uid = UUID(job_json['uid'])
         # OK status
         response.status_code = HTTPStatus.OK
@@ -324,7 +315,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         job = vdx_helper.get_jobs(mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/jobs", requests.get.call_args[0][0])
-        self.assertDictEqual(job, paginated_job)
+        self.assertDictEqual(job, paginated_job["result"])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -332,14 +323,14 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
-        response.json.return_value = verification_response_json
+        response.json.return_value = paginated_verification_response_json
 
         cert_uid = UUID('189e4e5c-833d-430b-9baa-5230841d997f')
 
         # OK status
         response.status_code = HTTPStatus.OK
         verification_response = vdx_helper.verify_by_uid(cert_uid)
-        self.assertEqual(mapped_verification, verification_response)
+        self.assertEqual(mapped_paginated_verification, verification_response)
         self.assertEqual(f"{self.api_url}/verify/{cert_uid}", requests.get.call_args[0][0])
 
         # not OK status
@@ -355,7 +346,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         verification_response = vdx_helper.verify_by_uid(cert_uid=cert_uid, mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/verify/{cert_uid}", requests.get.call_args[0][0])
-        self.assertDictEqual(verification_response, verification_response_json)
+        self.assertDictEqual(verification_response, paginated_verification_response_json["result"])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -392,7 +383,7 @@ class VdxHelperTest(unittest.TestCase):
                                                                  file_content_type=file_content_type,
                                                                  mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/verify/upload/certificate", requests.post.call_args[0][0])
-        self.assertDictEqual(verification_response, verification_response_json)
+        self.assertDictEqual(verification_response, verification_json)
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -400,7 +391,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.post.return_value = response
-        response.json.return_value = verification_response_json
+        response.json.return_value = paginated_verification_response_json
 
         # file
         file_stream = MagicMock()
@@ -410,7 +401,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         verification_response = vdx_helper.verify_by_file(filename=filename, file_stream=file_stream,
                                                           file_content_type=file_content_type)
-        self.assertEqual(mapped_verification, verification_response)
+        self.assertEqual(mapped_paginated_verification, verification_response)
         self.assertEqual(f"{self.api_url}/verify/upload/file", requests.post.call_args[0][0])
 
         # not OK status
@@ -428,7 +419,7 @@ class VdxHelperTest(unittest.TestCase):
         verification_response = vdx_helper.verify_by_file(filename=filename, file_stream=file_stream,
                                                           file_content_type=file_content_type, mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/verify/upload/file", requests.post.call_args[0][0])
-        self.assertDictEqual(verification_response, verification_response_json)
+        self.assertDictEqual(verification_response, paginated_verification_response_json["result"])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -436,14 +427,14 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
-        response.json.return_value = verification_response_json
+        response.json.return_value = paginated_verification_response_json
 
         cred_uid = UUID('189e4e5c-833d-430b-9baa-5230841d997f')
 
         # OK status
         response.status_code = HTTPStatus.OK
         verification_response = vdx_helper.verify_by_credential_uid(cred_uid=cred_uid)
-        self.assertEqual(mapped_verification, verification_response)
+        self.assertEqual(mapped_paginated_verification, verification_response)
         self.assertEqual(f"{self.api_url}/verify/credential/{cred_uid}", requests.get.call_args[0][0])
 
         # not OK status
@@ -459,7 +450,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         verification_response = vdx_helper.verify_by_credential_uid(cred_uid=cred_uid, mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/verify/credential/{cred_uid}", requests.get.call_args[0][0])
-        self.assertDictEqual(verification_response, verification_response_json)
+        self.assertDictEqual(verification_response, paginated_verification_response_json["result"])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -488,7 +479,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         certificates = vdx_helper.get_certificates(mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/certificates", requests.get.call_args[0][0])
-        self.assertDictEqual(paginated_certificate, certificates)
+        self.assertDictEqual(paginated_certificate["result"], certificates)
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -497,14 +488,14 @@ class VdxHelperTest(unittest.TestCase):
         response = MagicMock()
         requests.post.return_value = response
         cert_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
-        example_revoked_date = "2020-02-11T15:34:05.813217+00:00"
+        example_revoked_date = {"result": "2020-02-11T15:34:05.813217+00:00"}
 
         # OK case
         response.status_code = HTTPStatus.OK
         response.json.return_value = example_revoked_date
         revoked_date = vdx_helper.revoke_certificate(cert_uid=cert_uid)
         self.assertEqual(f"{self.api_url}/certificates/{cert_uid}/revoke", requests.post.call_args[0][0])
-        assert revoked_date == datetime.fromisoformat(example_revoked_date)
+        assert revoked_date == datetime.fromisoformat(example_revoked_date["result"])
 
         # not OK case
         response.status_code = HTTPStatus.CONFLICT
@@ -566,7 +557,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         certificates = vdx_helper.get_job_certificates(job_uid=job_uid, mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/jobs/{job_uid}/certificates", requests.get.call_args[0][0])
-        self.assertDictEqual(certificates, paginated_certificate)
+        self.assertDictEqual(certificates, paginated_certificate["result"])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -596,7 +587,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         credentials = vdx_helper.get_job_credentials(job_uid=job_uid, mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/jobs/{job_uid}/credentials", requests.get.call_args[0][0])
-        self.assertDictEqual(credentials, paginated_credential)
+        self.assertDictEqual(credentials, paginated_credential["result"])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -604,7 +595,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.post.return_value = response
-        response.json.return_value = job_json
+        response.json.return_value = response_job_json
         engine = 'dogecoin'
         credentials = [UUID("939a9ccb-ddf9-424c-94eb-91898455a968"), UUID("39c7ddcd-f480-48e5-8056-fabf84e7f859")]
         # Success status
@@ -655,7 +646,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         files = vdx_helper.get_files(mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/files", requests.get.call_args[0][0])
-        self.assertDictEqual(files, paginated_file)
+        self.assertDictEqual(files, paginated_file["result"])
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
@@ -663,7 +654,7 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
-        response.json.return_value = file_json
+        response.json.return_value = response_file_json
         file_hash = "123456789"
         # OK status
         response.status_code = HTTPStatus.OK
