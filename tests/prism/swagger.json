@@ -842,7 +842,6 @@
                   "items": {
                     "type": "string",
                     "title": "uuid",
-                    "format": "uuid",
                     "example": "123e4567-e89b-12d3-a456-426655440000"
                   }
                 },
@@ -856,7 +855,6 @@
                 },
                 "expiry_date": {
                   "type": "string",
-                  "format": "date",
                   "title": "datetime",
                   "example": "2020-02-11T15:34:05.814607+00:00"
                 }
