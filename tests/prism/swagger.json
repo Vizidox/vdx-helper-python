@@ -122,7 +122,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "title": "Certificate",
+                        "title": "Verification",
                         "$ref": "#/definitions/VerificationResponse"
                       }
                     }
@@ -715,7 +715,7 @@
         "summary": "Create credentials",
         "responses": {
           "201": {
-            "description": "OK",
+            "description": "CREATED",
             "schema": {
               "type": "object",
               "properties": {
@@ -911,7 +911,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "title": "Certificate",
+                        "title": "Credential",
                         "$ref": "#/definitions/Credential"
                       }
                     }
@@ -1290,7 +1290,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "title": "Certificate",
+                        "title": "File",
                         "$ref": "#/definitions/File"
                       }
                     }
@@ -1502,7 +1502,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "title": "Certificate",
+                        "title": "Job",
                         "$ref": "#/definitions/Job"
                       }
                     }
@@ -2608,7 +2608,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "title": "Certificate",
+                        "title": "Verification",
                         "$ref": "#/definitions/VerificationResponse"
                       }
                     }
@@ -2901,7 +2901,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "title": "Certificate",
+                        "title": "Credential",
                         "$ref": "#/definitions/Credential"
                       }
                     }
