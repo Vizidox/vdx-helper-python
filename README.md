@@ -1,11 +1,13 @@
+[![PyPI version](https://badge.fury.io/py/vdx-helper.svg)](https://badge.fury.io/py/vdx-helper) 
+[![Downloads](https://static.pepy.tech/personalized-badge/vdx-helper?period=total&units=abbreviation&left_color=black&right_color=blue&left_text=Downloads)](https://pepy.tech/project/vdx-helper)
+
 # VDX Helper
 This repository provides a wrapper for every call made to VDX Core Api.
 
 ## How it works
-This helper first needs to be authorized by wielding valid token from Keycloak, then use that token for further requests as long as it has not expired.
+This helper first needs to be authorized by wielding valid token from the authentication server, then use that token for further requests as long as it has not expired.
 
 Each method also allows one to include their own custom mappers, enabling the method to return the result in the format the user wishes.
-![workflow illustration](docs/images/vdx-helper.png)
 
 ## Prerequisites
 
@@ -52,7 +54,7 @@ poetry run pytest --cov=vdx_helper
 ```
 
 ### Run the test locally with docker-compose step-by-step
-1. Turn up the docker-containers
+1. Spin up the docker-containers
 ```
 docker-compose up -d
 ```
@@ -81,8 +83,3 @@ All source files are in docs/source, with vdx_helper containing the documentatio
 * **Tiago Santos** - *Initial work* - [Vizidox](https://vizidox.com)
 * **Joana Teixeira** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
 * **Rita Mariquitos** - *Corrections and improvements* - [Vizidox](https://vizidox.com)
-
-## License
-
-All of the code developed in this project belongs to Vizidox Solutions Limited under the ownership of Freddy Elturk and 
-any distribution or use must be authorized and agreed upon previously.

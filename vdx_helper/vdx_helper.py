@@ -50,7 +50,7 @@ class VDXHelper:
 
     def _fetch_token(self) -> Tuple[str, float]:
         """
-        Retrieves a usable authentication token from the Vizidox Authentication Server, with the set up
+        Retrieves a usable authentication token from the Vizidox Authentication Server, with the set-up
         client_id and client_secret.
 
         :raises VDXError: Raised when there is an issue with the request to the Authentication server
@@ -103,10 +103,7 @@ class VDXHelper:
         :return: The request header
         :rtype: dict
         """
-        return {
-            "Authorization": "Bearer " + self._token,
-            "Accept": "application/json"
-        }
+        return {"Authorization": f"Bearer {self._token}", "Accept": "application/json"}
 
     def upload_file(self,
                     file_stream: BinaryIO,
@@ -138,7 +135,7 @@ class VDXHelper:
         if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def get_file(self, file_hash: str, mapper: Callable[[dict], T] = file_mapper) -> T:
         """
@@ -159,7 +156,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def get_files(self, mapper: Callable[[dict], T] = get_paginated_mapper(file_mapper),
                   file_hash: Optional[str] = None, **pagination) -> T:
@@ -182,7 +179,7 @@ class VDXHelper:
         status = HTTPStatus(response.status_code)
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def get_credentials(self, mapper: Callable[[dict], T] = get_paginated_mapper(credential_mapper), *,
                         metadata: Optional[dict] = None, uid: Optional[UUID] = None,
@@ -244,7 +241,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def get_credential(self, cred_uid: UUID, mapper: Callable[[dict], T] = credential_mapper) -> T:
         """
@@ -265,7 +262,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def create_credential(self, title: str, metadata: dict, tags: Optional[Iterable[str]] = None,
                           file_hashes: Optional[List[str]] = None, cred_ids: List[UUID] = None,
@@ -315,7 +312,7 @@ class VDXHelper:
         if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def update_credential_tags(self, updated_credential_tags: Iterable[Dict[str, List[str]]]) -> None:
         """
@@ -425,7 +422,7 @@ class VDXHelper:
         if status is not HTTPStatus.CREATED:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def issue_job(self, engine: str, mapper: Callable[[dict], T] = job_mapper) -> T:
         """
@@ -448,7 +445,7 @@ class VDXHelper:
         if status is not HTTPStatus.CREATED:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def get_jobs(self, mapper: Callable[[dict], T] = get_paginated_mapper(job_mapper), *,
                  job_status: Optional[str] = None, uid: Optional[UUID] = None,
@@ -506,7 +503,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def get_job(self, job_uid: UUID, mapper: Callable[[dict], T] = job_mapper) -> T:
         """
@@ -527,7 +524,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def update_job_tags(self, updated_job_tags: List[dict]) -> None:
         """
@@ -629,8 +626,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        certificates_json = response.json()
-        return mapper(certificates_json)
+        return mapper(response.json()["result"])
 
     def get_job_credentials(self, job_uid: UUID, and_tags: Optional[str] = None, or_tags: Optional[str] = None,
                             mapper: Callable[[dict], T] = get_paginated_mapper(credential_mapper),
@@ -671,7 +667,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def get_certificates(self, mapper: Callable[[dict], T] = get_paginated_mapper(certificate_mapper), *,
                          job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None, uid: Optional[UUID] = None,
@@ -748,8 +744,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        certificates_json = response.json()
-        return mapper(certificates_json)
+        return mapper(response.json()["result"])
 
     def download_certificate(self, cert_uid: UUID) -> io.BytesIO:
         """
@@ -771,7 +766,8 @@ class VDXHelper:
 
         return io.BytesIO(response.content)
 
-    def verify_by_uid(self, cert_uid: UUID, mapper: Callable[[dict], T] = verification_mapper) -> T:
+    def verify_by_uid(self, cert_uid: UUID,
+                      mapper: Callable[[dict], T] = get_paginated_mapper(verification_mapper)) -> T:
         """
         Verify a certificate via its UID.
 
@@ -790,7 +786,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def verify_by_certificate(self, filename: str, file_stream: BinaryIO, file_content_type: str,
                               mapper: Callable[[dict], T] = verification_mapper) -> T:
@@ -821,10 +817,10 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def verify_by_file(self, filename: str, file_stream: BinaryIO, file_content_type: str,
-                       mapper: Callable[[dict], T] = verification_mapper, **pagination) -> T:
+                       mapper: Callable[[dict], T] = get_paginated_mapper(verification_mapper), **pagination) -> T:
         """
         Verify a certificate via the credential file.
         Results are paginated, and the pagination parameters should be provided as keyword arguments.
@@ -859,9 +855,10 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
-    def verify_by_credential_uid(self, cred_uid: UUID, mapper: Callable[[dict], T] = verification_mapper,
+    def verify_by_credential_uid(self, cred_uid: UUID,
+                                 mapper: Callable[[dict], T] = get_paginated_mapper(verification_mapper),
                                  **pagination) -> T:
         """
         Verify certificates via their credential UID.
@@ -889,7 +886,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return mapper(response.json())
+        return mapper(response.json()["result"])
 
     def revoke_certificate(self, cert_uid: UUID) -> datetime:
         """
@@ -907,7 +904,7 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return datetime_from_string(response.json())
+        return datetime_from_string(response.json()["result"])
 
     def revoke_certificate_by_credential(self, cred_uid: UUID, engine: str) -> datetime:
         """
@@ -928,4 +925,4 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        return datetime_from_string(response.json())
+        return datetime_from_string(response.json()["result"])

@@ -36,9 +36,8 @@ class ClientMockServerTest(TestCase):
         self.default_current_time = 300
 
     def get_vdx_helper(self):
-        vdx_helper = VDXHelper(api_url=self.mock_endpoint, auth_url=self.keycloak_url,
-                               client_secret=self.core_api_key, client_id=self.core_api_client_id)
-        return vdx_helper
+        return VDXHelper(api_url=self.mock_endpoint, auth_url=self.keycloak_url,
+                         client_secret=self.core_api_key, client_id=self.core_api_client_id)
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -84,7 +83,7 @@ class ClientMockServerTest(TestCase):
         if status not in [HTTPStatus.OK, HTTPStatus.CREATED]:
             raise error_from_response(status, response)
 
-        file_summary = file_mapper(response.json())
+        file_summary = file_mapper(response.json()["result"])
 
         assert file_summary is not None
 
@@ -168,7 +167,7 @@ class ClientMockServerTest(TestCase):
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-        verification_response = custom_verification_mapper(response.json())
+        verification_response = get_paginated_mapper(custom_verification_mapper)(response.json()["result"])
 
         assert verification_response is not None
 
@@ -178,7 +177,8 @@ class ClientMockServerTest(TestCase):
         _token.return_value = "vizidox-authorization"
 
         cred_id = UUID('123e4567-e89b-12d3-a456-426655440000')
-        verification_response = vdx_helper.verify_by_credential_uid(cred_uid=cred_id, mapper=custom_verification_mapper)
+        verification_response = vdx_helper.verify_by_credential_uid(cred_uid=cred_id,
+                                                                    mapper=get_paginated_mapper(custom_verification_mapper))
         assert verification_response is not None
 
     @patch('vdx_helper.vdx_helper.VDXHelper._token', new_callable=PropertyMock)
