@@ -10,19 +10,26 @@ file_json = {
     "file_type": "type"
 }
 
+response_file_json = {
+    "result": file_json,
+    "meta": {}
+}
+
 paginated_file = {
-    "page": "1",
-    "total_pages": "1",
-    "per_page": "20",
-    "total_items": "1",
-    "items": [file_json]
+    "result": {
+        "page": "1",
+        "total_pages": "1",
+        "per_page": "20",
+        "total_items": "1",
+        "items": [file_json]
+    },
+    "meta": {}
 }
 
 mapped_file = File(file_hash="hash", file_type="type")
 
 mapped_paginated_file = PaginatedResponse(page=1, total_pages=1, per_page=20, total_items=1,
                                           items=[mapped_file])
-
 
 credential_json = {
     "uid": "189e4e5c-833d-430b-9baa-5230841d997f",
@@ -35,6 +42,11 @@ credential_json = {
     "expiry_date": "2021-01-01T15:34:05.814607+00:00"
 }
 
+response_credential_json = {
+    "result": credential_json,
+    "meta": {}
+}
+
 mapped_credential = Credential(uid=UUID("189e4e5c-833d-430b-9baa-5230841d997f"), title="title", metadata={},
                                files=[mapped_file], credentials=[],
                                upload_date=datetime.fromisoformat('2020-01-01T11:29:28.977178+00:00'),
@@ -42,11 +54,14 @@ mapped_credential = Credential(uid=UUID("189e4e5c-833d-430b-9baa-5230841d997f"),
                                expiry_date=datetime.fromisoformat("2021-01-01T15:34:05.814607+00:00"))
 
 paginated_credential = {
-    "page": "1",
-    "total_pages": "1",
-    "per_page": "20",
-    "total_items": "1",
-    "items": [credential_json]
+    "result": {
+        "page": "1",
+        "total_pages": "1",
+        "per_page": "20",
+        "total_items": "1",
+        "items": [credential_json]
+    },
+    "meta": {}
 }
 
 mapped_paginated_credential = PaginatedResponse(page=1, total_pages=1, per_page=20, total_items=1,
@@ -69,12 +84,20 @@ job_json = {
     "scheduled_date": "2020-11-13T12:00:00+00:00"
 }
 
+response_job_json = {
+    "result": job_json,
+    "meta": {}
+}
+
 paginated_job = {
-    "page": "1",
-    "total_pages": "1",
-    "per_page": "20",
-    "total_items": "1",
-    "items": [job_json]
+    "result": {
+        "page": "1",
+        "total_pages": "1",
+        "per_page": "20",
+        "total_items": "1",
+        "items": [job_json]
+    },
+    "meta": {}
 }
 
 mapped_partner = Partner(id="partner_id", name="partner")
@@ -110,16 +133,15 @@ mapped_verification_step_2 = VerificationStepResult(name='Checking revocation da
                                                     },
                                                     status=StepStatus.failed)
 
-
 mapped_verification_report = VerificationReport(status=VerificationStatus.ok,
                                                 timestamp=datetime.fromisoformat("2020-02-11T15:34:05.813289+00:00"))
 
 verification_result_json = {
-        "status": mapped_verification_report.status.name,
-        "timestamp": mapped_verification_report.timestamp.isoformat()
-    }
+    "status": mapped_verification_report.status.name,
+    "timestamp": mapped_verification_report.timestamp.isoformat()
+}
 
-verification_response_json = {
+verification_json = {
     "verification": {
         "step1": {
             "name": mapped_verification_step_1.name,
@@ -135,8 +157,27 @@ verification_response_json = {
     "result": verification_result_json
 }
 
+verification_response_json = {
+    "result": verification_json,
+    "meta": {}
+}
+
 mapped_verification = VerificationResponse({"step1": mapped_verification_step_1, "step2": mapped_verification_step_2},
                                            mapped_verification_report)
+
+paginated_verification_response_json = {
+    "result": {
+        "page": "1",
+        "total_pages": "1",
+        "per_page": "20",
+        "total_items": "1",
+        "items": [verification_json]
+    },
+    "meta": {}
+}
+
+mapped_paginated_verification = PaginatedResponse(page=1, total_pages=1, per_page=20, total_items=1,
+                                                  items=[mapped_verification])
 
 certificate_json = {
     "certificate": {
@@ -162,11 +203,14 @@ revoked_certificate_json = {
 }
 
 paginated_certificate = {
-    "page": "1",
-    "total_pages": "1",
-    "per_page": "20",
-    "total_items": "2",
-    "items": [certificate_json, revoked_certificate_json]
+    "result": {
+        "page": "1",
+        "total_pages": "1",
+        "per_page": "20",
+        "total_items": "2",
+        "items": [certificate_json, revoked_certificate_json]
+    },
+    "meta": {}
 }
 
 mapped_claim = Claim(uid=UUID("123e4567-e89b-12d3-a456-426655440000"),
