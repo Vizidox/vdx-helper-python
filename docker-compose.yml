@@ -13,6 +13,8 @@ services:
 
   vdx-helper:
     build: .
+    depends_on:
+      - prism
     networks:
       vdx-helper-prism-network:
 

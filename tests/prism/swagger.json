@@ -1,6 +1,6 @@
 {
   "info": {
-    "version": "8.0.0",
+    "version": "2022.04.2-dev",
     "title": "vizidox",
     "description": "",
     "termsOfService": "/tos"
@@ -14,7 +14,16 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/VerificationResponse"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/VerificationResponse"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "400": {
@@ -88,7 +97,42 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/VerificationResponse"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "per_page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "Verification",
+                        "$ref": "#/definitions/VerificationResponse"
+                      }
+                    }
+                  }
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "400": {
@@ -192,7 +236,16 @@
           "201": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/Job"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/Job"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -325,7 +378,16 @@
           "201": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/Job"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/Job"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -468,50 +530,58 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "title": "Paginated",
               "properties": {
-                "page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_pages": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "per_page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_items": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "title": "Certificate",
-                    "$ref": "#/definitions/Certificate"
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "per_page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "Certificate",
+                        "$ref": "#/definitions/Certificate"
+                      }
+                    }
                   }
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
                 }
               }
-            }
-          },
-          "422": {
-            "description": "wrong_pagination_argument",
-            "schema": {
-              "type": "object",
-              "title": "error message",
-              "required": [
-                "code",
-                "description"
-              ],
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
+            },
+            "422": {
+              "description": "wrong_pagination_argument",
+              "schema": {
+                "type": "object",
+                "title": "error message",
+                "required": [
+                  "code",
+                  "description"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -645,9 +715,18 @@
         "summary": "Create credentials",
         "responses": {
           "201": {
-            "description": "OK",
+            "description": "CREATED",
             "schema": {
-              "$ref": "#/definitions/Credential"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/Credential"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "400": {
@@ -808,30 +887,39 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "title": "PaginatedView",
               "properties": {
-                "page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_pages": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "per_page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_items": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/Credential"
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "per_page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "Credential",
+                        "$ref": "#/definitions/Credential"
+                      }
+                    }
                   }
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
                 }
               }
             }
@@ -949,7 +1037,15 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "properties": {}
+              "properties": {
+                "result": {
+                  "type": "object"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "400": {
@@ -1055,7 +1151,15 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "properties": {}
+              "properties": {
+                "result": {
+                  "type": "object"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "400": {
@@ -1162,30 +1266,39 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "title": "PaginatedView",
               "properties": {
-                "page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_pages": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "per_page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_items": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/File"
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "per_page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "File",
+                        "$ref": "#/definitions/File"
+                      }
+                    }
                   }
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
                 }
               }
             }
@@ -1271,7 +1384,16 @@
           "201": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/File"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/File"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "400": {
@@ -1348,20 +1470,6 @@
         "operationId": "upload_partner_file"
       }
     },
-    "/api/ping": {
-      "get": {
-        "summary": "Ping response",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "ping"
-        ],
-        "operationId": "ping"
-      }
-    },
     "/api/jobs": {
       "get": {
         "summary": "Get jobs",
@@ -1370,31 +1478,39 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "title": "Paginated",
               "properties": {
-                "page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_pages": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "per_page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_items": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "title": "Job",
-                    "$ref": "#/definitions/Job"
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "per_page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "Job",
+                        "$ref": "#/definitions/Job"
+                      }
+                    }
                   }
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
                 }
               }
             }
@@ -1570,7 +1686,15 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "properties": {}
+              "properties": {
+                "result": {
+                  "type": "object"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "400": {
@@ -1676,7 +1800,15 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "properties": {}
+              "properties": {
+                "result": {
+                  "type": "object"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "400": {
@@ -1839,10 +1971,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "type": "string",
-              "format": "date",
-              "title": "datetime",
-              "example": "2020-02-11T15:34:05.814607+00:00"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "string",
+                  "format": "date",
+                  "title": "datetime",
+                  "example": "2020-02-11T15:34:05.814607+00:00"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -1930,6 +2071,322 @@
         "operationId": "revoke_certificate"
       }
     },
+    "/api/credentials/schedule/{engine}": {
+      "post": {
+        "summary": "Create a Credential from a file, and schedule it",
+        "description": "Create a Credential from a file, and schedule it",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/Job"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_file_and_metadata | invalid_tag | duplicated_tags | invalid_expiry_date",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_job",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "file_already_exists | credential_already_scheduled_or_issued",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "no_json",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "missing_field | wrong_blockchain_engine",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "engine",
+            "in": "path",
+            "description": "Engine to issue on",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "file",
+            "type": "file",
+            "required": false,
+            "description": "File to be scheduled"
+          },
+          {
+            "in": "formData",
+            "required": true,
+            "name": "credential_details",
+            "format": "application/json",
+            "schema": {
+              "type": "object",
+              "required": [
+                "title",
+                "metadata",
+                "tags"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {}
+                },
+                "files": {
+                  "description": "List of file hashes to add to the credential",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "credentials": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "title": "uuid",
+                    "format": "uuid",
+                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                  }
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 20
+                  }
+                },
+                "expiry_date": {
+                  "type": "string",
+                  "format": "date",
+                  "title": "datetime",
+                  "example": "2020-02-11T15:34:05.814607+00:00"
+                },
+                "ignore_duplicate": {
+                  "description": "True to ignore duplicated uploaded files",
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "schedule_credential"
+      }
+    },
+    "/api/credentials/{cred_uid}/unschedule/{engine}": {
+      "delete": {
+        "summary": "Unschedule a Credential from a specific engine. Deletes the credential if it is not scheduled nor issued in other engines.",
+        "description": "Unschedule a Credential from a specific engine. Deletes the credential if it is not scheduled nor issued in other engines.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "object"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "missing_job | missing_credential",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "credential_not_scheduled",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "wrong_blockchain_engine",
+            "schema": {
+              "type": "object",
+              "title": "error message",
+              "required": [
+                "code",
+                "description"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "engine",
+            "in": "path",
+            "description": "Engine to unschedule the credential from",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "cred_uid",
+            "in": "path",
+            "description": "Credential to be unscheduled",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "tags": [
+          "credential"
+        ],
+        "security": [
+          {
+            "client_auth": [
+              ""
+            ]
+          }
+        ],
+        "operationId": "unschedule_credential"
+      }
+    },
     "/api/credentials/{cred_uid}/delete_tag": {
       "patch": {
         "summary": "Delete a credential's tag",
@@ -1938,7 +2395,15 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "properties": {}
+              "properties": {
+                "result": {
+                  "type": "object"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -2003,10 +2468,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "type": "string",
-              "format": "date",
-              "title": "datetime",
-              "example": "2020-02-11T15:34:05.814607+00:00"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "string",
+                  "format": "date",
+                  "title": "datetime",
+                  "example": "2020-02-11T15:34:05.814607+00:00"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -2109,7 +2583,42 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/VerificationResponse"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "per_page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "Verification",
+                        "$ref": "#/definitions/VerificationResponse"
+                      }
+                    }
+                  }
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -2213,31 +2722,39 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "title": "Paginated",
               "properties": {
-                "page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_pages": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "per_page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_items": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "title": "Certificate",
-                    "$ref": "#/definitions/Certificate"
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "per_page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "Certificate",
+                        "$ref": "#/definitions/Certificate"
+                      }
+                    }
                   }
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
                 }
               }
             }
@@ -2360,30 +2877,39 @@
             "description": "OK",
             "schema": {
               "type": "object",
-              "title": "PaginatedView",
               "properties": {
-                "page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_pages": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "per_page": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "total_items": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/Credential"
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "per_page": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "total_items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "Credential",
+                        "$ref": "#/definitions/Credential"
+                      }
+                    }
                   }
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
                 }
               }
             }
@@ -2505,7 +3031,16 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/Credential"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/Credential"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -2562,7 +3097,16 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/VerificationResponse"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/VerificationResponse"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -2618,7 +3162,16 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/File"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/File"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -2666,29 +3219,6 @@
         ]
       }
     },
-    "/api/ping/{n}": {
-      "get": {
-        "summary": "Slow ping: ping response after n seconds",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "parameters": [
-          {
-            "name": "n",
-            "in": "path",
-            "description": "number of seconds",
-            "required": true,
-            "type": "integer"
-          }
-        ],
-        "tags": [
-          "ping"
-        ],
-        "operationId": "slow_ping"
-      }
-    },
     "/api/jobs/{job_uid}": {
       "get": {
         "summary": "Get job",
@@ -2696,7 +3226,16 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/Job"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/Job"
+                },
+                "meta": {
+                  "type": "object",
+                  "$ref": "#/definitions/MetaField"
+                }
+              }
             }
           },
           "404": {
@@ -2747,6 +3286,51 @@
     }
   },
   "definitions": {
+    "MetaField": {
+      "type": "object",
+      "required": [
+        "last_update",
+        "date",
+        "message",
+        "version",
+        "documentation"
+      ],
+      "properties": {
+        "last_update": {
+          "type": "string",
+          "format": "date",
+          "title": "Last Update",
+          "example": "2022-03-11T15:34:05.813217+00:00",
+          "description": "The date of the last server update/deploy"
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "title": "Date",
+          "example": "2020-04-21T15:34:05.813217+00:00",
+          "description": "The current date of the request"
+        },
+        "message": {
+          "type": "string",
+          "title": "Message",
+          "example": ":)",
+          "description": "A message to be sent to the user with any additional details, such as an endpoint field that is to be deprecated"
+        },
+        "version": {
+          "type": "string",
+          "title": "Version",
+          "example": "2022.04.1",
+          "description": "The current version of the API"
+        },
+        "documentation": {
+          "type": "string",
+          "title": "Documentation",
+          "example": "https://docs.vizidox.com",
+          "description": "The URL to the API documentation"
+        }
+      },
+      "description": "NamedTuple representing the \"meta\" field in a Vizidox server response. This field contains any additional information<br/>regarding the server that might be of interest to the user, such as the current version or the last time it was<br/>updated."
+    },
     "File": {
       "type": "object",
       "required": [
