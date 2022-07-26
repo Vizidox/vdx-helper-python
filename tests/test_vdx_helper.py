@@ -323,14 +323,14 @@ class VdxHelperTest(unittest.TestCase):
         vdx_helper = self.get_vdx_helper()
         response = MagicMock()
         requests.get.return_value = response
-        response.json.return_value = paginated_verification_response_json
+        response.json.return_value = verification_response_json
 
         cert_uid = UUID('189e4e5c-833d-430b-9baa-5230841d997f')
 
         # OK status
         response.status_code = HTTPStatus.OK
         verification_response = vdx_helper.verify_by_uid(cert_uid)
-        self.assertEqual(mapped_paginated_verification, verification_response)
+        self.assertEqual(mapped_verification, verification_response)
         self.assertEqual(f"{self.api_url}/verify/{cert_uid}", requests.get.call_args[0][0])
 
         # not OK status
@@ -346,7 +346,7 @@ class VdxHelperTest(unittest.TestCase):
         response.status_code = HTTPStatus.OK
         verification_response = vdx_helper.verify_by_uid(cert_uid=cert_uid, mapper=json_mapper)
         self.assertEqual(f"{self.api_url}/verify/{cert_uid}", requests.get.call_args[0][0])
-        self.assertDictEqual(verification_response, paginated_verification_response_json["result"])
+        self.assertDictEqual(verification_response, verification_json)
 
     @patch('vdx_helper.vdx_helper.requests')
     @patch('vdx_helper.vdx_helper.VDXHelper.header')
