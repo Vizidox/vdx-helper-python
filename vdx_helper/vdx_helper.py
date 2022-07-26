@@ -767,7 +767,7 @@ class VDXHelper:
         return io.BytesIO(response.content)
 
     def verify_by_uid(self, cert_uid: UUID,
-                      mapper: Callable[[dict], T] = get_paginated_mapper(verification_mapper)) -> T:
+                      mapper: Callable[[dict], T] = verification_mapper) -> T:
         """
         Verify a certificate via its UID.
 
