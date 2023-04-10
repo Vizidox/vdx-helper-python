@@ -24,7 +24,7 @@ def json_mapper(json_: Dict[str, Any]) -> Dict[str, Any]:
     return json_
 
 
-def get_paginated_mapper(mapper: Callable[[Dict[str, Any]], T]) -> Callable[[Dict[str, Any]], 'PaginatedResponse[T]']:
+def get_paginated_mapper(mapper: Callable[[Dict[str, Any]], T]) -> Callable[[Dict[str, Any]], 'PaginatedResponse']:
     """
     Obtain a mapper method that maps a json response from the Core API into a PaginatedResponse object containing
     a specific object as its items.
@@ -35,7 +35,7 @@ def get_paginated_mapper(mapper: Callable[[Dict[str, Any]], T]) -> Callable[[Dic
     :return: A mapping function
     :rtype: Callable
     """
-    def paginated_mapper(json_: Dict[str, Any]) -> 'PaginatedResponse[T]':
+    def paginated_mapper(json_: Dict[str, Any]) -> 'PaginatedResponse':
         """
         Maps the json response into a Paginated Response object.
 

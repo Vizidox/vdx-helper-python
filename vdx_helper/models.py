@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import NamedTuple, Optional, List, Mapping, Generic, TypeVar, Dict, Any
+from typing import NamedTuple, Optional, List, Mapping, TypeVar, Dict, Any
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
@@ -280,7 +280,7 @@ class Certificate(NamedTuple):
     last_verification: Optional[VerificationReport]
 
 
-class PaginatedResponse(NamedTuple, Generic[T]):
+class PaginatedResponse(NamedTuple):
     """
     Object representing a paginated response from the API.
     from the API
@@ -298,13 +298,13 @@ class PaginatedResponse(NamedTuple, Generic[T]):
     :type total_items: int
 
     :param items: The list of objects returned by the API
-    :type items: List[T]
+    :type items: List[Any]
     """
     page: int
     total_pages: int
     per_page: int
     total_items: int
-    items: List[T]
+    items: List[Any]
 
     def __eq__(self, obj: object) -> bool:
         """
