@@ -96,19 +96,19 @@ class VDXHelper:
         return self.auth_token
 
     @property
-    def header(self) -> dict:
+    def header(self) -> Dict[str, Any]:
         """
         Creates a header structure to be used by all requests for authentication.
 
         :return: The request header
-        :rtype: dict
+        :rtype: Dict[str, Any]
         """
         return {"Authorization": f"Bearer {self._token}", "Accept": "application/json"}
 
     def upload_file(self,
                     file_stream: BinaryIO,
                     ignore_duplicated: bool = False,
-                    mapper: Callable[[dict], T] = file_mapper) -> T:
+                    mapper: Callable[[Dict[str, Any]], T] = file_mapper) -> T:
         """
         Upload a file to the Core API servers.
 
@@ -137,7 +137,7 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def get_file(self, file_hash: str, mapper: Callable[[dict], T] = file_mapper) -> T:
+    def get_file(self, file_hash: str, mapper: Callable[[Dict[str, Any]], T] = file_mapper) -> T:
         """
         Retrieve file details by its hash.
 
@@ -158,8 +158,8 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def get_files(self, mapper: Callable[[dict], T] = get_paginated_mapper(file_mapper),
-                  file_hash: Optional[str] = None, **pagination) -> T:
+    def get_files(self, mapper: Callable[[Dict[str, Any]], T] = get_paginated_mapper(file_mapper),
+                  file_hash: Optional[str] = None, **pagination: Dict[str, Any]) -> T:
         """
         Retrieve all files uploaded by the Partner, or filter them via their hash.
 
@@ -168,6 +168,9 @@ class VDXHelper:
 
         :param file_hash: File hash to filter by
         :type file_hash: str, optional
+
+        :param pagination: Keyword arguments for pagination
+        :type pagination: Dict[str, Any]
 
         :return: The result of the endpoint call
         :rtype: :class:`T`
@@ -181,10 +184,10 @@ class VDXHelper:
             raise error_from_response(status, response)
         return mapper(response.json()["result"])
 
-    def get_credentials(self, mapper: Callable[[dict], T] = get_paginated_mapper(credential_mapper), *,
-                        metadata: Optional[dict] = None, uid: Optional[UUID] = None,
+    def get_credentials(self, mapper: Callable[[Dict[str, Any]], T] = get_paginated_mapper(credential_mapper), *,
+                        metadata: Optional[Dict[str, Any]] = None, uid: Optional[UUID] = None,
                         start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
-                        and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
+                        and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination: Dict[str, Any]) -> T:
         """
         Retrieve all partner credentials, or filter by metadata values, uid,
         upload_date (start_date < upload_date < end_date), and tags.
@@ -218,7 +221,7 @@ class VDXHelper:
         :type or_tags: List[str], optional
 
         :param pagination: Keyword arguments for pagination
-        :type pagination: dict
+        :type pagination: Dict[str, Any]
 
         :return: The result of the endpoint call
         :rtype: :class:`T`
@@ -243,7 +246,7 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def get_credential(self, cred_uid: UUID, mapper: Callable[[dict], T] = credential_mapper) -> T:
+    def get_credential(self, cred_uid: UUID, mapper: Callable[[Dict[str, Any]], T] = credential_mapper) -> T:
         """
         Retrieve a specific credential from the Core API, via its UUID.
 
@@ -266,7 +269,8 @@ class VDXHelper:
 
     def create_credential(self, title: str, metadata: Dict[str, Any], tags: Optional[Iterable[str]] = None,
                           file_hashes: Optional[List[str]] = None, cred_ids: List[UUID] = None,
-                          expiry_date: Optional[str] = None, mapper: Callable[[dict], T] = credential_mapper) -> T:
+                          expiry_date: Optional[str] = None,
+                          mapper: Callable[[Dict[str, Any]], T] = credential_mapper) -> T:
         """
         Create a new credential from a previously uploaded file, or provided metadata.
 
@@ -334,7 +338,7 @@ class VDXHelper:
             ]
 
         :param updated_credential_tags: Dictionary containing the credential UUIDs to update and the new tags to add
-        :type updated_credential_tags: dict
+        :type updated_credential_tags: Dict[str, List[str]]
         """
         payload = {"credentials": updated_credential_tags}
         response = requests.patch(f"{self.api_url}/credentials", headers=self.header, json=payload)
@@ -396,7 +400,8 @@ class VDXHelper:
         if status is not HTTPStatus.OK:
             raise error_from_response(status, response)
 
-    def schedule_credentials(self, engine: str, credentials: List[UUID], mapper: Callable[[dict], T] = job_mapper) -> T:
+    def schedule_credentials(self, engine: str, credentials: List[UUID],
+                             mapper: Callable[[Dict[str, Any]], T] = job_mapper) -> T:
         """
         Schedule the given list of credentials to be issued on the Blockchain engine.
 
@@ -424,7 +429,7 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def issue_job(self, engine: str, mapper: Callable[[dict], T] = job_mapper) -> T:
+    def issue_job(self, engine: str, mapper: Callable[[Dict[str, Any]], T] = job_mapper) -> T:
         """
         Immediately issues the next scheduled job for the given blockchain engine, if there are scheduled credentials.
 
@@ -447,10 +452,10 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def get_jobs(self, mapper: Callable[[dict], T] = get_paginated_mapper(job_mapper), *,
+    def get_jobs(self, mapper: Callable[[Dict[str, Any]], T] = get_paginated_mapper(job_mapper), *,
                  job_status: Optional[str] = None, uid: Optional[UUID] = None,
                  start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
-                 and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination) -> T:
+                 and_tags: Optional[str] = None, or_tags: Optional[str] = None, **pagination: Dict[str, Any]) -> T:
         """
         Retrieve all partner jobs, or filter by a specific status, uid,
         issued date (start_date < issued_date < end_date), and tags.
@@ -482,7 +487,7 @@ class VDXHelper:
         :type or_tags: List[str], optional
 
         :param pagination: Keyword arguments for pagination
-        :type pagination: dict
+        :type pagination: Dict[str, Any]
 
         :return: The result of the endpoint call
         :rtype: :class:`T`
@@ -505,7 +510,7 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def get_job(self, job_uid: UUID, mapper: Callable[[dict], T] = job_mapper) -> T:
+    def get_job(self, job_uid: UUID, mapper: Callable[[Dict[str, Any]], T] = job_mapper) -> T:
         """
         Retrieve a specific job from the Core API, via its UUID.
 
@@ -526,7 +531,7 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def update_job_tags(self, updated_job_tags: List[dict]) -> None:
+    def update_job_tags(self, updated_job_tags: List[Dict[str, Any]]) -> None:
         """
         Add new tags to one or more jobs. Previous job tags are not changed.
 
@@ -546,7 +551,7 @@ class VDXHelper:
             ]
 
         :param updated_job_tags: Dictionary containing the job UUIDs to update and the new tags to add
-        :type updated_job_tags: dict
+        :type updated_job_tags: Dict[str, Any]
         """
         payload = {"jobs": updated_job_tags}
         response = requests.patch(f"{self.api_url}/jobs", headers=self.header, json=payload)
@@ -557,7 +562,7 @@ class VDXHelper:
 
         return None
 
-    def replace_job_tags(self, replace_job_tags: List[dict]) -> None:
+    def replace_job_tags(self, replace_job_tags: List[Dict[str, Any]]) -> None:
         """
         Replaces all the given job tags with the new ones.
 
@@ -576,8 +581,9 @@ class VDXHelper:
                 }
             ]
 
-        :param replace_job_tags: Dictionary containing the job UUIDs to update and the new tags to replace the old ones with
-        :type replace_job_tags: dict
+        :param replace_job_tags: Dictionary containing the job UUIDs to update and the new tags to replace
+                                 the old ones with
+        :type replace_job_tags: Dict[str, Any]
         """
         payload = {"jobs": replace_job_tags}
         response = requests.put(f"{self.api_url}/jobs", headers=self.header, json=payload)
@@ -589,7 +595,8 @@ class VDXHelper:
         return None
 
     def get_job_certificates(self, job_uid: UUID, and_tags: Optional[str] = None, or_tags: Optional[str] = None,
-                             mapper: Callable[[dict], T] = get_paginated_mapper(certificate_mapper), **pagination) -> T:
+                             mapper: Callable[[Dict[str, Any]], T] = get_paginated_mapper(certificate_mapper),
+                             **pagination: Dict[str, Any]) -> T:
         """
         Retrieve all certificates issued in a specific Job, or filter by tags.
 
@@ -613,7 +620,7 @@ class VDXHelper:
         :type mapper: :class:`typing.Callable`
 
         :param pagination: Keyword arguments for pagination
-        :type pagination: dict
+        :type pagination: Dict[str, Any]
 
         :return: The result of the endpoint call
         :rtype: :class:`T`
@@ -629,8 +636,8 @@ class VDXHelper:
         return mapper(response.json()["result"])
 
     def get_job_credentials(self, job_uid: UUID, and_tags: Optional[str] = None, or_tags: Optional[str] = None,
-                            mapper: Callable[[dict], T] = get_paginated_mapper(credential_mapper),
-                            **pagination) -> Optional[T]:
+                            mapper: Callable[[Dict[str, Any]], T] = get_paginated_mapper(credential_mapper),
+                            **pagination: Dict[str, Any]) -> Optional[T]:
         """
         Retrieve all credentials issued in a specific Job, or filter by tags.
 
@@ -654,7 +661,7 @@ class VDXHelper:
         :type mapper: :class:`typing.Callable`
 
         :param pagination: Keyword arguments for pagination
-        :type pagination: dict
+        :type pagination: Dict[str, Any]
 
         :return: The result of the endpoint call
         :rtype: :class:`T`
@@ -669,12 +676,12 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def get_certificates(self, mapper: Callable[[dict], T] = get_paginated_mapper(certificate_mapper), *,
+    def get_certificates(self, mapper: Callable[[Dict[str, Any]], T] = get_paginated_mapper(certificate_mapper), *,
                          job_uid: Optional[UUID] = None, cred_uid: Optional[UUID] = None, uid: Optional[UUID] = None,
                          start_date: Optional[datetime] = None, end_date: Optional[datetime] = None,
                          and_credential_tags: Optional[str] = None, or_credential_tags: Optional[str] = None,
                          and_job_tags: Optional[str] = None, or_job_tags: Optional[str] = None,
-                         verification_status: Optional[str] = None, **pagination) -> T:
+                         verification_status: Optional[str] = None, **pagination: Dict[str, Any]) -> T:
         """
         Retrieve all partner certificates, or filter by job, credential, uid,
         issued date (start_date < issued_date < end_date), and credential or job tags.
@@ -720,7 +727,7 @@ class VDXHelper:
         :type verification_status: str, optional
 
         :param pagination: Keyword arguments for pagination
-        :type pagination: dict
+        :type pagination: Dict[str, Any]
 
         :return: The result of the endpoint call
         :rtype: :class:`T`
@@ -767,7 +774,7 @@ class VDXHelper:
         return io.BytesIO(response.content)
 
     def verify_by_uid(self, cert_uid: UUID,
-                      mapper: Callable[[dict], T] = verification_mapper) -> T:
+                      mapper: Callable[[Dict[str, Any]], T] = verification_mapper) -> T:
         """
         Verify a certificate via its UID.
 
@@ -789,7 +796,7 @@ class VDXHelper:
         return mapper(response.json()["result"])
 
     def verify_by_certificate(self, filename: str, file_stream: BinaryIO, file_content_type: str,
-                              mapper: Callable[[dict], T] = verification_mapper) -> T:
+                              mapper: Callable[[Dict[str, Any]], T] = verification_mapper) -> T:
         """
         Verify a certificate via its proof file.
 
@@ -820,7 +827,8 @@ class VDXHelper:
         return mapper(response.json()["result"])
 
     def verify_by_file(self, filename: str, file_stream: BinaryIO, file_content_type: str,
-                       mapper: Callable[[dict], T] = get_paginated_mapper(verification_mapper), **pagination) -> T:
+                       mapper: Callable[[Dict[str, Any]], T] = get_paginated_mapper(verification_mapper),
+                       **pagination: Dict[str, Any]) -> T:
         """
         Verify a certificate via the credential file.
         Results are paginated, and the pagination parameters should be provided as keyword arguments.
@@ -841,7 +849,7 @@ class VDXHelper:
         :type mapper: :class:`typing.Callable`
 
         :param pagination: Keyword argument containing the pagination parameters
-        :type pagination: dict
+        :type pagination: Dict[str, Any]
 
         :return: The result of the endpoint call
         :rtype: :class:`T`
@@ -858,8 +866,8 @@ class VDXHelper:
         return mapper(response.json()["result"])
 
     def verify_by_credential_uid(self, cred_uid: UUID,
-                                 mapper: Callable[[dict], T] = get_paginated_mapper(verification_mapper),
-                                 **pagination) -> T:
+                                 mapper: Callable[[Dict[str, Any]], T] = get_paginated_mapper(verification_mapper),
+                                 **pagination: Dict[str, Any]) -> T:
         """
         Verify certificates via their credential UID.
         Results are paginated, and the pagination parameters should be provided as keyword arguments.
@@ -874,7 +882,7 @@ class VDXHelper:
         :type mapper: :class:`typing.Callable`
 
         :param pagination: Keyword argument containing the pagination parameters
-        :type pagination: dict
+        :type pagination: Dict[str, Any]
 
         :return: The result of the endpoint call
         :rtype: :class:`T`
