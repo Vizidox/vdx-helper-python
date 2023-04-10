@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import NamedTuple, Optional, List, Mapping, Generic, TypeVar, Dict
+from typing import NamedTuple, Optional, List, Mapping, Generic, TypeVar, Dict, Any
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
@@ -91,7 +91,7 @@ class Credential(NamedTuple):
     """
     uid: UUID
     title: str
-    metadata: dict
+    metadata: Dict[str, Any]
     files: List[File]
     credentials: List['Credential']
     upload_date: datetime

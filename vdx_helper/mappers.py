@@ -1,25 +1,25 @@
 from datetime import datetime
-from typing import TypeVar, Callable
+from typing import TypeVar, Callable, Dict, Any
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
 from vdx_helper.models import File, PaginatedResponse, Credential, Job, VerificationResponse, \
     VerificationStepResult, Certificate, Claim, Partner, \
     VerificationReport
-from vdx_helper.util import optional_datetime_from_string
+from vdx_helper.util import optional_datetime_from_string, datetime_from_string
 
 T = TypeVar('T')
 
 
-def json_mapper(json_: dict) -> dict:
+def json_mapper(json_: Dict[str, Any]) -> Dict[str, Any]:
     """
     Directly map any json response to a json response.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: The response in json format
-    :rtype: dict
+    :rtype: Dict[str, Any]
     """
     return json_
 

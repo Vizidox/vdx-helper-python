@@ -2,7 +2,7 @@ import io
 import time
 from datetime import datetime
 from http import HTTPStatus
-from typing import Optional, Callable, Dict, TypeVar, Tuple, List, Iterable, BinaryIO
+from typing import Optional, Callable, Dict, TypeVar, Tuple, List, Iterable, BinaryIO, Any
 from uuid import UUID
 
 import requests
@@ -264,7 +264,7 @@ class VDXHelper:
 
         return mapper(response.json()["result"])
 
-    def create_credential(self, title: str, metadata: dict, tags: Optional[Iterable[str]] = None,
+    def create_credential(self, title: str, metadata: Dict[str, Any], tags: Optional[Iterable[str]] = None,
                           file_hashes: Optional[List[str]] = None, cred_ids: List[UUID] = None,
                           expiry_date: Optional[str] = None, mapper: Callable[[dict], T] = credential_mapper) -> T:
         """
@@ -276,7 +276,7 @@ class VDXHelper:
         :param metadata: Metadata values to filter by. A dictionary is expected with the key corresponding to the
                          field name found in the metadata, and the value corresponding to that field's value. Can be
                          an empty dictionary as long as at least one file hash is provided.
-        :type metadata: dict
+        :type metadata: Dict[str, Any]
 
         :param tags: Optional text tags that can be used to identify and filter the credential. Must have at least
                     3 characters, and can only contain alphanumeric characters, '-' or '_'
