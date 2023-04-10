@@ -755,7 +755,7 @@ class VDXHelper:
         :type cert_uid: :class:`uuid.UUID`
 
         :return: The result of the endpoint call
-        :rtype: :class:`T`
+        :rtype: :class:`io.BytesIO`
         """
         response = requests.get(f"{self.api_url}/certificates/{cert_uid}/download",headers=self.header)
 
