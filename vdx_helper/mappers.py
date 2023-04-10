@@ -110,7 +110,7 @@ def job_mapper(json_: dict) -> Job:
         chain=json_["chain"],
         tags=json_["tags"],
         status=JobStatus(json_["status"]),
-        created_date=optional_datetime_from_string(json_.get("created_date")),
+        created_date=datetime_from_string(json_["created_date"]),
         start_date=optional_datetime_from_string(json_.get("start_date")),
         issued_date=optional_datetime_from_string(json_.get("issued_date")),
         finished_date=optional_datetime_from_string(json_.get("finished_date")),
