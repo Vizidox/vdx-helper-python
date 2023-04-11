@@ -224,7 +224,7 @@ class ClientMockServerTest(TestCase):
         vdx_helper = self.get_vdx_helper()
         _token.return_value = "vizidox-authorization"
         job_uid = UUID("939a9ccb-ddf9-424c-94eb-91898455a968")
-        certificates = vdx_helper.get_job_certificates(job_uid=job_uid, pagination=None,
+        certificates = vdx_helper.get_job_certificates(job_uid=job_uid, pagination={},
                                                        mapper=get_paginated_mapper(custom_certificate_mapper))
         assert certificates is not None
 

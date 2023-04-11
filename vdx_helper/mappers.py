@@ -1,30 +1,30 @@
 from datetime import datetime
-from typing import TypeVar, Callable
+from typing import TypeVar, Callable, Dict, Any
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
 from vdx_helper.models import File, PaginatedResponse, Credential, Job, VerificationResponse, \
     VerificationStepResult, Certificate, Claim, Partner, \
     VerificationReport
-from vdx_helper.util import optional_datetime_from_string
+from vdx_helper.util import optional_datetime_from_string, datetime_from_string
 
 T = TypeVar('T')
 
 
-def json_mapper(json_: dict) -> dict:
+def json_mapper(json_: Dict[str, Any]) -> Dict[str, Any]:
     """
     Directly map any json response to a json response.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: The response in json format
-    :rtype: dict
+    :rtype: Dict[str, Any]
     """
     return json_
 
 
-def get_paginated_mapper(mapper: Callable[[dict], T]) -> Callable[[dict], 'PaginatedResponse[T]']:
+def get_paginated_mapper(mapper: Callable[[Dict[str, Any]], T]) -> Callable[[Dict[str, Any]], 'PaginatedResponse']:
     """
     Obtain a mapper method that maps a json response from the Core API into a PaginatedResponse object containing
     a specific object as its items.
@@ -35,12 +35,12 @@ def get_paginated_mapper(mapper: Callable[[dict], T]) -> Callable[[dict], 'Pagin
     :return: A mapping function
     :rtype: Callable
     """
-    def paginated_mapper(json_: dict) -> 'PaginatedResponse[T]':
+    def paginated_mapper(json_: Dict[str, Any]) -> 'PaginatedResponse':
         """
         Maps the json response into a Paginated Response object.
 
         :param json_: The json obtained from the endpoint call
-        :type json_: dict
+        :type json_: Dict[str, Any]
 
         :return: A Paginated Response instance
         :rtype: class:`vdx_helper.models.PaginatedResponse`
@@ -56,12 +56,12 @@ def get_paginated_mapper(mapper: Callable[[dict], T]) -> Callable[[dict], 'Pagin
     return paginated_mapper
 
 
-def file_mapper(json_: dict) -> File:
+def file_mapper(json_: Dict[str, Any]) -> File:
     """
     Maps the json file response into a File object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: A File instance
     :rtype: :class:`vdx_helper.models.File`
@@ -72,12 +72,12 @@ def file_mapper(json_: dict) -> File:
     )
 
 
-def credential_mapper(json_: dict) -> Credential:
+def credential_mapper(json_: Dict[str, Any]) -> Credential:
     """
     Maps the json credential response into a Credential object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: A Credential instance
     :rtype: :class:`vdx_helper.models.Credential`
@@ -94,12 +94,12 @@ def credential_mapper(json_: dict) -> Credential:
     )
 
 
-def job_mapper(json_: dict) -> Job:
+def job_mapper(json_: Dict[str, Any]) -> Job:
     """
     Maps the json job response into a Job object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: A Job instance
     :rtype: :class:`vdx_helper.models.Job`
@@ -110,7 +110,7 @@ def job_mapper(json_: dict) -> Job:
         chain=json_["chain"],
         tags=json_["tags"],
         status=JobStatus(json_["status"]),
-        created_date=optional_datetime_from_string(json_.get("created_date")),
+        created_date=datetime_from_string(json_["created_date"]),
         start_date=optional_datetime_from_string(json_.get("start_date")),
         issued_date=optional_datetime_from_string(json_.get("issued_date")),
         finished_date=optional_datetime_from_string(json_.get("finished_date")),
@@ -119,12 +119,12 @@ def job_mapper(json_: dict) -> Job:
     )
 
 
-def verification_mapper(json_: dict) -> VerificationResponse:
+def verification_mapper(json_: Dict[str, Any]) -> VerificationResponse:
     """
     Maps the json verification response into a VerificationResponse object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: A VerificationResponse instance
     :rtype: :class:`vdx_helper.models.VerificationResponse`
@@ -135,12 +135,12 @@ def verification_mapper(json_: dict) -> VerificationResponse:
     )
 
 
-def verification_step_mapper(json_: dict) -> VerificationStepResult:
+def verification_step_mapper(json_: Dict[str, Any]) -> VerificationStepResult:
     """
     Maps the json verification step result response into a Verification Step Result object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, str]
 
     :return: A VerificationStepResult instance
     :rtype: :class:`vdx_helper.models.VerificationStepResult`
@@ -152,12 +152,12 @@ def verification_step_mapper(json_: dict) -> VerificationStepResult:
     )
 
 
-def partner_mapper(json_: dict) -> Partner:
+def partner_mapper(json_: Dict[str, Any]) -> Partner:
     """
     Maps the json partner response into a Partner object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: A Partner instance
     :rtype: :class:`vdx_helper.models.Partner`
@@ -167,12 +167,12 @@ def partner_mapper(json_: dict) -> Partner:
     )
 
 
-def claim_mapper(json_: dict) -> Claim:
+def claim_mapper(json_: Dict[str, Any]) -> Claim:
     """
     Maps the json claim response into a Claim object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: A Claim instance
     :rtype: :class:`vdx_helper.models.Claim`
@@ -186,12 +186,12 @@ def claim_mapper(json_: dict) -> Claim:
     )
 
 
-def certificate_mapper(json_: dict) -> Certificate:
+def certificate_mapper(json_: Dict[str, Any]) -> Certificate:
     """
     Maps the json certificate response into a Certificate object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, Any]
 
     :return: A Certificate instance
     :rtype: :class:`vdx_helper.models.Certificate`
@@ -204,12 +204,12 @@ def certificate_mapper(json_: dict) -> Certificate:
     )
 
 
-def verification_report_mapper(json_: dict) -> VerificationReport:
+def verification_report_mapper(json_: Dict[str, str]) -> VerificationReport:
     """
     Maps the json verification report response into a Verification Report object.
 
     :param json_: The json obtained from the endpoint call
-    :type json_: dict
+    :type json_: Dict[str, str]
 
     :return: A VerificationReport instance
     :rtype: :class:`vdx_helper.models.VerificationReport`

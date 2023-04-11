@@ -1,5 +1,4 @@
 import unittest
-import coverage
 
 # load test with test suites
 test_suites = unittest.TestLoader().discover('/home/app/tests', pattern='test_*.py')

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import NamedTuple, Optional, List, Mapping, Generic, TypeVar, Dict
+from typing import NamedTuple, Optional, List, Mapping, TypeVar, Dict, Any
 from uuid import UUID
 
 from vdx_helper.domain import VerificationStatus, StepStatus, JobStatus
@@ -20,12 +20,12 @@ class Partner(NamedTuple):
     id: str
     name: str
 
-    def __eq__(self, obj: 'Partner'):
+    def __eq__(self, obj: object) -> bool:
         """
-        Overriding of the equals method for simplified comparison between Paginated objects.
+        Overriding of the equals method for simplified comparison between Partner objects.
 
-        :param obj: The other instance of a paginated object
-        :type obj: :class:`PaginatedResponse`
+        :param obj: The other instance of a Partner object
+        :type obj: object
 
         :return: True if the two objects are equal
         :rtype: bool
@@ -46,12 +46,12 @@ class File(NamedTuple):
     file_hash: str
     file_type: Optional[str]
 
-    def __eq__(self, obj: 'File'):
+    def __eq__(self, obj: object) -> bool:
         """
         Overriding of the equals method for simplified comparison between File objects.
 
         :param obj: The other instance of a File object
-        :type obj: :class:`File`
+        :type obj: object
 
         :return: True if the two objects are equal
         :rtype: bool
@@ -72,7 +72,7 @@ class Credential(NamedTuple):
     :type title: str
 
     :param metadata: Any additional data in the credential
-    :type metadata: dict
+    :type metadata: Dict
 
     :param files: List of files issued on the credential
     :type files: List[:class:`File`]
@@ -91,19 +91,19 @@ class Credential(NamedTuple):
     """
     uid: UUID
     title: str
-    metadata: dict
+    metadata: Dict[str, Any]
     files: List[File]
     credentials: List['Credential']
     upload_date: datetime
     tags: List[str]
     expiry_date: Optional[datetime]
 
-    def __eq__(self, obj: 'Credential'):
+    def __eq__(self, obj: object) -> bool:
         """
         Overriding of the equals method for simplified comparison between Credential objects.
 
         :param obj: The other instance of a credential object
-        :type obj: :class:`Credential`
+        :type obj: object
 
         :return: True if the two objects are equal
         :rtype: bool
@@ -249,12 +249,12 @@ class Claim(NamedTuple):
     issued_date: datetime
     signature: str
 
-    def __eq__(self, obj: 'Claim'):
+    def __eq__(self, obj: object) -> bool:
         """
         Overriding of the equals method for simplified comparison between Claim objects.
 
         :param obj: The other instance of a claim object
-        :type obj: :class:`Claim`
+        :type obj: object
 
         :return: True if the two objects are equal
         :rtype: bool
@@ -280,7 +280,7 @@ class Certificate(NamedTuple):
     last_verification: Optional[VerificationReport]
 
 
-class PaginatedResponse(NamedTuple, Generic[T]):
+class PaginatedResponse(NamedTuple):
     """
     Object representing a paginated response from the API.
     from the API
@@ -298,20 +298,20 @@ class PaginatedResponse(NamedTuple, Generic[T]):
     :type total_items: int
 
     :param items: The list of objects returned by the API
-    :type items: List[T]
+    :type items: List[Any]
     """
     page: int
     total_pages: int
     per_page: int
     total_items: int
-    items: List[T]
+    items: List[Any]
 
-    def __eq__(self, obj: 'PaginatedResponse'):
+    def __eq__(self, obj: object) -> bool:
         """
         Overriding of the equals method for simplified comparison between Paginated objects.
 
         :param obj: The other instance of a paginated object
-        :type obj: :class:`PaginatedResponse`
+        :type obj: object
 
         :return: True if the two objects are equal
         :rtype: bool

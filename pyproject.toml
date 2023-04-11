@@ -18,16 +18,18 @@ classifiers = ["License :: OSI Approved :: MIT License",
 python = "^3.7"
 requests="^2.27"
 nndict="1.0.0"
+tox = "^4.4.11"
 
 [tool.poetry.dev-dependencies]
-pytest = "5.4.3"
+pytest = "^6.0"
 coverage = "^5.0"
 pytest-cov = "^2.10.1"
 testcontainers = "^3.5"
-mypy="0.910"
+mypy="^1.2"
+types-requests = "^2.28.11.17"
 sphinx="4.3.0"
 sphinx-rtd-theme="1.0.0"
 
 [build-system]
-requires = ["poetry>=1.0"]
+requires = ["poetry>=1.3"]
 build-backend = "poetry.masonry.api"

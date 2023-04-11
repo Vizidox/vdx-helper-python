@@ -53,6 +53,22 @@ You can run the tests with poetry if you like. You can also obtain the code cove
 poetry run pytest --cov=vdx_helper
 ```
 
+* **Mypy:**
+```shell
+poetry run mypy --config-file conf/mypy.ini vdx_helper
+```
+
+* **Coverage:**
+```shell
+poetry run coverage run --source=vdx_helper -m pytest
+poetry run coverage report
+```
+
+* **Tox:**
+```shell
+tox -p
+```
+
 ### Run the test locally with docker-compose step-by-step
 1. Spin up the docker-containers
 ```

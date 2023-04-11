@@ -20,7 +20,7 @@ class VDXError(Exception):
         self.message = message
 
 
-def error_from_response(status: HTTPStatus, response: Response):
+def error_from_response(status: HTTPStatus, response: Response) -> VDXError:
     """
     Maps a given error from an endpoint response to an exception with the correct status code and description of the
     error
@@ -34,10 +34,9 @@ def error_from_response(status: HTTPStatus, response: Response):
     :return: A VDXError to be raised
     :rtype: :class:`VDXError`
     """
-    if status is not HTTPStatus.OK:
-        try:
-            json_response = response.json()
-            description = json_response.get("description")
-        except (ValueError, AttributeError):
-            description = ""
-        return VDXError(code=status, message=description)
+    try:
+        json_response = response.json()
+        description = json_response.get("description")
+    except (ValueError, AttributeError):
+        description = ""
+    return VDXError(code=status, message=description)
