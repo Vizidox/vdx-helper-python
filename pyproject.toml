@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vdx-helper"
-version = "3.2.3"
+version = "3.2.4"
 description = "Python client library to connect to the VDX Core API"
 authors = ["Joana Teixeira <joana.teixeira@vizidox.com>", "Tiago Santos <tiago.santos@vizidox.com>",
            "Rita Mariquitos <rita.mariquitos@morphotech.co.uk>"]
