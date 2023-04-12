@@ -17,18 +17,19 @@ classifiers = ["License :: OSI Approved :: MIT License",
 [tool.poetry.dependencies]
 python = "^3.7"
 requests="^2.27"
-nndict="1.0.0"
-tox = "^4.4.11"
+nndict="^2.0.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.0"
-coverage = "^5.0"
-pytest-cov = "^2.10.1"
+pytest = "^7.3.0"
+coverage = "^7.2.3"
+pytest-cov = "^4.0.0"
 testcontainers = "^3.5"
 mypy="^1.2"
+sphinx="^5.3.0"
+sphinx-rtd-theme="^1.2.0"
+tox = "^4.4.11"
+
 types-requests = "^2.28.11.17"
-sphinx="4.3.0"
-sphinx-rtd-theme="1.0.0"
 
 [build-system]
 requires = ["poetry>=1.3"]
